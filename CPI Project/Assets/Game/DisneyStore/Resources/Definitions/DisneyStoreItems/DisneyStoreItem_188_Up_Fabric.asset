@@ -20,5 +20,5 @@ MonoBehaviour:
   DescriptionToken: DisneyStore.Item.Up.Global.Description
   TitleToken: UpFabric.Title
   Icon:
-    Key: DisneyShop/Images/DisneyShop_Fabric_Incredibles2
+    Key: DisneyShop/Images/DisneyShop_Fabric_Up
     type: UnityEngine.Sprite, UnityEngine
