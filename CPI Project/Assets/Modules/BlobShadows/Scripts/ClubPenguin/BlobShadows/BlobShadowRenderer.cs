@@ -275,6 +275,7 @@ namespace ClubPenguin.BlobShadows
 			shadowRenderCommandBuffer.ClearRenderTarget(false, true, Color.white);
 			shadowRenderCommandBuffer.SetGlobalMatrix(BLOB_SHADOW_CAM_VP_ID, value);
 			shadowRenderCommandBuffer.DrawMesh(shadowMesh, Matrix4x4.identity, shadowMaterial, 0, 0);
+			shadowRenderCommandBuffer.DrawMesh(shadowMesh, Matrix4x4.identity, shadowMaterial, 0, 1);
 			context.ExecuteCommandBuffer(shadowRenderCommandBuffer);
 		}
 
