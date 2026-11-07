@@ -12,6 +12,7 @@ using System.Collections;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
+using TMPro;
 
 namespace ClubPenguin.Igloo.Catalog
 {
@@ -39,10 +40,10 @@ namespace ClubPenguin.Igloo.Catalog
 		private Image iconImage;
 
 		[SerializeField]
-		private Text titleText;
+		private TMP_Text titleText;
 
 		[SerializeField]
-		private Text descriptionText;
+		private TMP_Text descriptionText;
 
 		[SerializeField]
 		[Header("Purchase Confirmation Panel")]
@@ -58,10 +59,10 @@ namespace ClubPenguin.Igloo.Catalog
 		private GameObject needMoreCoinsTooltip;
 
 		[SerializeField]
-		private Text costText;
+		private TMP_Text costText;
 
 		[SerializeField]
-		private Text countText;
+		private TMP_Text countText;
 
 		[SerializeField]
 		[Header("Purchase Complete Panel")]
@@ -71,7 +72,7 @@ namespace ClubPenguin.Igloo.Catalog
 		private GameObject usePurchasedItemButton;
 
 		[SerializeField]
-		private Text usePurchasedItemText;
+		private TMP_Text usePurchasedItemText;
 
 		[SerializeField]
 		[Header("Breadcrumbs")]
