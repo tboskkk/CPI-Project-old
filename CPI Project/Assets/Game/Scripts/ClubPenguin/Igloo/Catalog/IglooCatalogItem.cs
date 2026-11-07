@@ -6,16 +6,17 @@ using Disney.MobileNetwork;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using TMPro;
 
 namespace ClubPenguin.Igloo.Catalog
 {
 	public class IglooCatalogItem : MonoBehaviour
 	{
 		[SerializeField]
-		private Text titleText;
+		private TMP_Text titleText;
 
 		[SerializeField]
-		private Text priceText;
+		private TMP_Text priceText;
 
 		[SerializeField]
 		private RawImage iconImage;
@@ -30,7 +31,7 @@ namespace ClubPenguin.Igloo.Catalog
 		private GameObject levelLockBadge;
 
 		[SerializeField]
-		private Text levelLockText;
+		private TMP_Text levelLockText;
 
 		[SerializeField]
 		private GameObject mascotBadges;
