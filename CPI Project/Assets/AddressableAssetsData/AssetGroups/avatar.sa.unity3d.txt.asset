@@ -1581,6 +1581,12 @@ MonoBehaviour:
     m_SerializedLabels:
     - avatar.sa.unity3d.txt
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 4a689acb6057f934a8452f06bb5093ed
+    m_Address: assets/assetpipeline/bundleassets/assetbundles/decals/fabric_up_balloons.png
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - avatar.sa.unity3d.txt
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 4a9e6382bd808244fbb957ea2e666c20
     m_Address: assets/assetpipeline/bundleassets/assetbundles/avatar/equipment/glam/glam_icon.png
     m_ReadOnly: 0

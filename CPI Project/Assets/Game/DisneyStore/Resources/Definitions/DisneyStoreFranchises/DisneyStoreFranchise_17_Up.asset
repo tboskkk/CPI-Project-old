@@ -16,6 +16,7 @@ MonoBehaviour:
   IsEnabled: 1
   Items:
   - {fileID: 11400000, guid: cee476797f9bdc84e8cfb02389fd4110, type: 2}
+  - {fileID: 11400000, guid: 624f6b0d0c8388c4b8d97f42270ca237, type: 2}
   StartTimeInSeconds: 1485216000
   EndTimeInSeconds: 66143347200000
   HomePrefabKey:

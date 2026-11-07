@@ -3023,6 +3023,8 @@ asset:definitions/disneystoreitems/disneystoreitem_186_toystory_aliensfabric?dl=
 asset:definitions/disneystoreitems/disneystoreitem_186_toystory_aliensfabric.reward?dl=res&x=asset
 asset:definitions/disneystoreitems/disneystoreitem_187_incredibles_fabric?dl=res&x=asset
 asset:definitions/disneystoreitems/disneystoreitem_187_incredibles_fabric.reward?dl=res&x=asset
+asset:definitions/disneystoreitems/disneystoreitem_188_up_fabric?dl=res&x=asset
+asset:definitions/disneystoreitems/disneystoreitem_188_up_fabric.reward?dl=res&x=asset
 asset:disneyshop/images/disneyshop_bighero6_bg?dl=res&x=png
 asset:disneyshop/images/disneyshop_bighero6_bgpattern?dl=res&x=png
 asset:disneyshop/images/disneyshop_bighero6_logo?dl=res&x=png&l=true&ld=en_US
@@ -3094,6 +3096,7 @@ asset:disneyshop/images/disneyshop_fabric_olafsfrozenadventure?dl=res&x=png
 asset:disneyshop/images/disneyshop_fabric_tangled?dl=res&x=png
 asset:disneyshop/images/disneyshop_fabric_toystory?dl=res&x=png
 asset:disneyshop/images/disneyshop_fabric_toystory_2?dl=res&x=png
+asset:disneyshop/images/disneyshop_fabric_up?dl=res&x=png
 asset:disneyshop/images/disneyshop_findingdory_bg?dl=res&x=png
 asset:disneyshop/images/disneyshop_findingdory_logo?dl=res&x=png&l=true&ld=en_US
 asset:disneyshop/images/disneyshop_findingdory_logo_en_us?dl=res&x=png
@@ -5091,6 +5094,7 @@ asset:definitions/equipment/fabricdefinitions/fabric_316_watermelon?dl=res&x=ass
 asset:definitions/equipment/fabricdefinitions/fabric_317_watermelon_2?dl=res&x=asset
 asset:definitions/equipment/fabricdefinitions/fabric_318_toystory_aliens?dl=res&x=asset
 asset:definitions/equipment/fabricdefinitions/fabric_319_incredibles_4?dl=res&x=asset
+asset:definitions/equipment/fabricdefinitions/fabric_320_up_balloons?dl=res&x=asset
 asset:definitions/equipment/faerywings_sec_torso_0lod?dl=res&x=asset
 asset:definitions/equipment/faerywings_sec_torso_1lod?dl=res&x=asset
 asset:definitions/equipment/fancyupdo_add_head_0lod?dl=res&x=asset
@@ -12244,6 +12248,7 @@ asset:decals/decal_ambassador_levelbadge?dl=bundle:sa-bundle&x=png&b=assetbundle
 asset:decals/decal_punk_skull?dl=bundle:sa-bundle&x=png&b=assetbundles/generated/standalonewindows64/avatar.sa.unity3d&p=assetpipeline/bundleassets/assetbundles
 asset:avatar/equipment/motorcyclejacket/motorcyclejacket_icon?dl=bundle:sa-bundle&x=png&b=assetbundles/generated/standalonewindows64/avatar.sa.unity3d&p=assetpipeline/bundleassets/assetbundles
 asset:decals/fabric_rdma_dots?dl=bundle:sa-bundle&x=png&b=assetbundles/generated/standalonewindows64/avatar.sa.unity3d&p=assetpipeline/bundleassets/assetbundles
+asset:decals/fabric_up_balloons?dl=bundle:sa-bundle&x=png&b=assetbundles/generated/standalonewindows64/avatar.sa.unity3d&p=assetpipeline/bundleassets/assetbundles
 bundle:assetbundles/generated/standalonewindows64/avatar.sa.unity3d?d=&p=0
 asset:screenpenguinprofiledefinitions/screenpenguinprofileprofile?dl=bundle:sa-bundle&x=asset&b=assetbundles/generated/standalonewindows64/screenpenguinprofileprofile.sa.unity3d&p=game/ui/screenpenguin/screenpenguinprofile/assetbundles
 bundle:assetbundles/generated/standalonewindows64/screenpenguinprofileprofile.sa.unity3d?d=&p=0
@@ -16202,5 +16207,5 @@ asset:quests/aac002q005storm/zones/beach/triggers/triggeractwood05?dl=bundle:sa-
 asset:quests/aac002q005storm/zones/boardwalk/objects/compscreenherbert/sourceassets/herbertscreenmodel?dl=bundle:sa-bundle&x=fbx&b=assetbundles/generated/standalonewindows64/quest/auntarctic/c02q05.sa.unity3d&p=game/adventure/assetbundles
 bundle:assetbundles/generated/standalonewindows64/quest/auntarctic/c02q05.sa.unity3d?d=&p=0
 baseuri:
-contentversion:799fcc6268f69bf2a365925c0054694228ee9245
+contentversion:9b213134e46a1d28aa835e1074a93b4a0a823ed8
 contentmanifesthash:
