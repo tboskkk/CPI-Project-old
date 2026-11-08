@@ -7405,6 +7405,8 @@ asset:definitions/decorations/decoration365_buoy?dl=res&x=asset
 asset:definitions/decorations/decoration366_garyslabarm?dl=res&x=asset
 asset:definitions/decorations/decoration367_minecart?dl=res&x=asset
 asset:definitions/decorations/decoration368_mickeylamp?dl=res&x=asset
+asset:definitions/decorations/decoration369_interactivepompomsred?dl=res&x=asset
+asset:definitions/decorations/decoration370_interactivepompomsblue?dl=res&x=asset
 asset:definitions/features/igloo?dl=res&x=asset
 asset:definitions/groups/group_0_beach?dl=res&x=asset
 asset:definitions/groups/group_1_vendor?dl=res&x=asset
@@ -15594,6 +15596,10 @@ asset:furniture/level0/covessandcastle/covessandcastle?dl=bundle:sa-bundle&x=pre
 asset:furniture/level0/cookingkit/cookingkit_furnitureicon?dl=bundle:sa-bundle&x=png&b=assetbundles/generated/standalonewindows64/igloo/level00.sa.unity3d&p=modules/igloo/assetbundles
 asset:furniture/level0/indoorlightfixtures/indoorlightfixtures?dl=bundle:sa-bundle&x=prefab&b=assetbundles/generated/standalonewindows64/igloo/level00.sa.unity3d&p=modules/igloo/assetbundles
 asset:furniture/level0/teleportpads/teleportpads_furnitureicon?dl=bundle:sa-bundle&x=png&b=assetbundles/generated/standalonewindows64/igloo/level00.sa.unity3d&p=modules/igloo/assetbundles
+asset:furniture/level0/interactivepompoms/interactivepompomsred?dl=bundle:sa-bundle&x=prefab&b=assetbundles/generated/standalonewindows64/igloo/level00.sa.unity3d&p=modules/igloo/assetbundles
+asset:furniture/level0/interactivepompoms/interactivepompomsblue?dl=bundle:sa-bundle&x=prefab&b=assetbundles/generated/standalonewindows64/igloo/level00.sa.unity3d&p=modules/igloo/assetbundles
+asset:furniture/level0/interactivepompoms/interactivepompomsblue_furnitureicon?dl=bundle:sa-bundle&x=png&b=assetbundles/generated/standalonewindows64/igloo/level00.sa.unity3d&p=modules/igloo/assetbundles
+asset:furniture/level0/interactivepompoms/interactivepompomsred_furnitureicon?dl=bundle:sa-bundle&x=png&b=assetbundles/generated/standalonewindows64/igloo/level00.sa.unity3d&p=modules/igloo/assetbundles
 bundle:assetbundles/generated/standalonewindows64/igloo/level00.sa.unity3d?d=&p=0
 asset:quests/aac002q004icy/zones/herbertbase/triggers/triggercameratunnel3inbetween?dl=bundle:sa-bundle&x=prefab&b=assetbundles/generated/standalonewindows64/quest/auntarctic/c02q04.sa.unity3d&p=game/adventure/assetbundles
 asset:quests/aac002q004icy/zones/beach/objects/animations/aac002q004cutscenetubecontrollerinitialize?dl=bundle:sa-bundle&x=anim&b=assetbundles/generated/standalonewindows64/quest/auntarctic/c02q04.sa.unity3d&p=game/adventure/assetbundles
@@ -16235,5 +16241,5 @@ asset:quests/aac002q005storm/zones/beach/triggers/triggeractwood05?dl=bundle:sa-
 asset:quests/aac002q005storm/zones/boardwalk/objects/compscreenherbert/sourceassets/herbertscreenmodel?dl=bundle:sa-bundle&x=fbx&b=assetbundles/generated/standalonewindows64/quest/auntarctic/c02q05.sa.unity3d&p=game/adventure/assetbundles
 bundle:assetbundles/generated/standalonewindows64/quest/auntarctic/c02q05.sa.unity3d?d=&p=0
 baseuri:
-contentversion:83523013bb2d807ac74ac353d58d22876a6fee91
+contentversion:c934406f9d4230232081456013202d418dcf8312
 contentmanifesthash:
