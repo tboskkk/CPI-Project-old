@@ -1,6 +1,7 @@
 using ClubPenguin.Analytics;
 using ClubPenguin.CellPhone;
 using ClubPenguin.Core;
+using ClubPenguin;
 using ClubPenguin.Net;
 using ClubPenguin.Net.Domain;
 using ClubPenguin.Progression;
@@ -77,6 +78,7 @@ namespace ClubPenguin.UI
 			SuccessPanel.SetActive(false);
 			PurchasePanel.SetActive(true);
 			confirmationPlacement = GetComponent<StoreItemConfirmationPlacement>();
+			InputHoldButton.AttachToQuantityButtons(base.gameObject);
 		}
 
 		public virtual void SetItem(PropDefinition propDefinition, Texture icon, MarketplaceScreenController marketplaceController, RectTransform itemTransform, RectTransform scrollRectTransform)

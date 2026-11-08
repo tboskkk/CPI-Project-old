@@ -1,6 +1,7 @@
 using ClubPenguin.Analytics;
 using ClubPenguin.Breadcrumbs;
 using ClubPenguin.Core;
+using ClubPenguin;
 using ClubPenguin.Net;
 using ClubPenguin.Net.Domain.Decoration;
 using ClubPenguin.UI;
@@ -96,6 +97,11 @@ namespace ClubPenguin.Igloo.Catalog
 		private NotificationBreadcrumbController notificationBreadcrumbController;
 
 		private int purchaseCount;
+
+		private void Awake()
+		{
+			InputHoldButton.AttachToQuantityButtons(base.gameObject);
+		}
 
 		public void SetItem(IglooCatalogItemData item, Sprite icon, IglooCatalogController catalog, IglooCatalogItem catalogItem, RectTransform scrollRectTransform)
 		{

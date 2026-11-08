@@ -2,6 +2,7 @@ using ClubPenguin.Analytics;
 using ClubPenguin.Avatar;
 using ClubPenguin.Breadcrumbs;
 using ClubPenguin.CellPhone;
+using ClubPenguin;
 using ClubPenguin.ClothingDesigner;
 using ClubPenguin.ClothingDesigner.Inventory;
 using ClubPenguin.Core;
@@ -89,6 +90,7 @@ namespace ClubPenguin.UI
 		{
 			SuccessPanel.SetActive(false);
 			PurchasePanel.SetActive(true);
+			InputHoldButton.AttachToQuantityButtons(base.gameObject);
 		}
 
 		public override void SetItem(DisneyStoreItemData item, Sprite icon, DisneyStoreFranchise storeFranchise, IDisneyStoreController storeController, DisneyStoreFranchiseItem shopItem, RectTransform scrollRectTransform)
