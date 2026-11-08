@@ -87,12 +87,6 @@ MonoBehaviour:
     m_SerializedLabels:
     - igloo/level00.sa.unity3d.txt
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 31bc0e9ff38539c40b190426196b4141
-    m_Address: assets/modules/igloo/assetbundles/furniture/level0/interactivepompoms/interactivepompomsred_furnitureicon.png
-    m_ReadOnly: 0
-    m_SerializedLabels:
-    - igloo/level00.sa.unity3d.txt
-    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 38ba3140444ef9c4f963045a409eb340
     m_Address: assets/modules/igloo/assetbundles/furniture/level0/teleportpads/teleportpads.prefab
     m_ReadOnly: 0
@@ -101,12 +95,6 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 40d74a6af851a4940a9298151aa45fe2
     m_Address: assets/modules/igloo/assetbundles/furniture/level0/kitchenisland/kitchenisland.prefab
-    m_ReadOnly: 0
-    m_SerializedLabels:
-    - igloo/level00.sa.unity3d.txt
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 41dd09aa5c49c084393d9055421942ff
-    m_Address: assets/modules/igloo/assetbundles/furniture/level0/interactivepompoms/interactivepompomsred.prefab
     m_ReadOnly: 0
     m_SerializedLabels:
     - igloo/level00.sa.unity3d.txt
@@ -125,12 +113,6 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 4eb8e2cf69cd8f54f8bc4052824f106e
     m_Address: assets/modules/igloo/assetbundles/furniture/level0/diningchair/diningchair.prefab
-    m_ReadOnly: 0
-    m_SerializedLabels:
-    - igloo/level00.sa.unity3d.txt
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 51b6000a4a3004b419ac13beb1ce990b
-    m_Address: assets/modules/igloo/assetbundles/furniture/level0/interactivepompoms/interactivepompomsblue_furnitureicon.png
     m_ReadOnly: 0
     m_SerializedLabels:
     - igloo/level00.sa.unity3d.txt
@@ -269,12 +251,6 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: f923fd60fab6bd2439bd7c9c53879993
     m_Address: assets/modules/igloo/assetbundles/furniture/level0/teleportpads/teleportpads_furnitureicon.png
-    m_ReadOnly: 0
-    m_SerializedLabels:
-    - igloo/level00.sa.unity3d.txt
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: ffd174726f794cc48b83d18aab4008fb
-    m_Address: assets/modules/igloo/assetbundles/furniture/level0/interactivepompoms/interactivepompomsblue.prefab
     m_ReadOnly: 0
     m_SerializedLabels:
     - igloo/level00.sa.unity3d.txt
