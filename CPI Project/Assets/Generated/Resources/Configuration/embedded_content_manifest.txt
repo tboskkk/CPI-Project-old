@@ -1365,6 +1365,7 @@ asset:audio/igloo/music/audio.igloo.mus.dancinginthesun?dl=res&x=prefab
 asset:audio/igloo/music/audio.igloo.mus.discoween?dl=res&x=prefab
 asset:audio/igloo/music/audio.igloo.mus.downhillhoedown?dl=res&x=prefab
 asset:audio/igloo/music/audio.igloo.mus.dubstylestep?dl=res&x=prefab
+asset:audio/igloo/music/audio.igloo.mus.elemental?dl=res&x=prefab
 asset:audio/igloo/music/audio.igloo.mus.epicisland?dl=res&x=prefab
 asset:audio/igloo/music/audio.igloo.mus.extremealohamalihini?dl=res&x=prefab
 asset:audio/igloo/music/audio.igloo.mus.extremehangloose?dl=res&x=prefab
@@ -1413,6 +1414,7 @@ asset:audio/igloo/music/audio.igloo.mus.ravecave?dl=res&x=prefab
 asset:audio/igloo/music/audio.igloo.mus.rockhoppertheme?dl=res&x=prefab
 asset:audio/igloo/music/audio.igloo.mus.rocktheboat?dl=res&x=prefab
 asset:audio/igloo/music/audio.igloo.mus.rocktheboatquartetremix?dl=res&x=prefab
+asset:audio/igloo/music/audio.igloo.mus.shadow?dl=res&x=prefab
 asset:audio/igloo/music/audio.igloo.mus.shootforthesun?dl=res&x=prefab
 asset:audio/igloo/music/audio.igloo.mus.skilodge?dl=res&x=prefab
 asset:audio/igloo/music/audio.igloo.mus.snowjourneys?dl=res&x=prefab
@@ -1434,7 +1436,9 @@ asset:audio/igloo/music/audio.igloo.mus.thetowntheme1?dl=res&x=prefab
 asset:audio/igloo/music/audio.igloo.mus.thevikingopera?dl=res&x=prefab
 asset:audio/igloo/music/audio.igloo.mus.thevolcano?dl=res&x=prefab
 asset:audio/igloo/music/audio.igloo.mus.thewayofthesensei?dl=res&x=prefab
+asset:audio/igloo/music/audio.igloo.mus.throughmountainpasses?dl=res&x=prefab
 asset:audio/igloo/music/audio.igloo.mus.tistheseason?dl=res&x=prefab
+asset:audio/igloo/music/audio.igloo.mus.universityrally?dl=res&x=prefab
 asset:audio/igloo/music/audio.igloo.mus.waterninjabattle?dl=res&x=prefab
 asset:audio/igloo/music/audio.igloo.mus.wearethepenguins?dl=res&x=prefab
 asset:audio/igloo/music/audio.igloo.mus.whatlurksinthenight?dl=res&x=prefab
@@ -7630,6 +7634,10 @@ asset:definitions/musictracks/musictrack_96_thewayofthesensei?dl=res&x=asset
 asset:definitions/musictracks/musictrack_97_mountaindojo?dl=res&x=asset
 asset:definitions/musictracks/musictrack_98_ninjatraining?dl=res&x=asset
 asset:definitions/musictracks/musictrack_99_waterninjabattle?dl=res&x=asset
+asset:definitions/musictracks/musictrack_100_elemental?dl=res&x=asset
+asset:definitions/musictracks/musictrack_101_shadow?dl=res&x=asset
+asset:definitions/musictracks/musictrack_102_throughmountainpasses?dl=res&x=asset
+asset:definitions/musictracks/musictrack_103_universityrally?dl=res&x=asset
 asset:definitions/musictracks/musictrack_allaboardforthehollidays?dl=res&x=asset
 asset:definitions/musictracks/musictrack_alohamalihini?dl=res&x=asset
 asset:definitions/musictracks/musictrack_bewarethedragon?dl=res&x=asset
@@ -16221,5 +16229,5 @@ asset:quests/aac002q005storm/zones/beach/triggers/triggeractwood05?dl=bundle:sa-
 asset:quests/aac002q005storm/zones/boardwalk/objects/compscreenherbert/sourceassets/herbertscreenmodel?dl=bundle:sa-bundle&x=fbx&b=assetbundles/generated/standalonewindows64/quest/auntarctic/c02q05.sa.unity3d&p=game/adventure/assetbundles
 bundle:assetbundles/generated/standalonewindows64/quest/auntarctic/c02q05.sa.unity3d?d=&p=0
 baseuri:
-contentversion:4487cf2da1b150e5e431c36ad300d55115b5f334
+contentversion:9fc6e7d7d0ee488737cc62346f59f4ed29c4a7a0
 contentmanifesthash:
