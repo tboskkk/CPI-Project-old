@@ -240,6 +240,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 9668279158a992542a8c8bbaaec50ed6, type: 2}
   - {fileID: 11400000, guid: a65fbd4d2b9fe894d911381368787abb, type: 2}
   - {fileID: 11400000, guid: 8bc014b77757a094b914f77619aad96a, type: 2}
+  - {fileID: 11400000, guid: e2ca5dc545b201545bfc83fe7c853674, type: 2}
   lighting:
   - {fileID: 11400000, guid: 2d0b5f52bccfd1f41a6d8abcaba92b60, type: 2}
   - {fileID: 11400000, guid: 59254c498b6fbc2419a76f7c7f2906ff, type: 2}

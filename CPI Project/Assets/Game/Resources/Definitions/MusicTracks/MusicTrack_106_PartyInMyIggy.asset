@@ -10,14 +10,14 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 4a20f5f9573791408bd3499eea32e493, type: 3}
-  m_Name: MusicTrack_60_PartyInMyIggy
+  m_Name: MusicTrack_106_PartyInMyIggy
   m_EditorClassIdentifier: 
   Name: Igloos.MusicTrack.PartyInMyIggy
   Icon:
     Key: 
     type: UnityEngine.Texture2D, UnityEngine
   isMemberOnly: 1
-  Id: 60
+  Id: 106
   InternalName: PartyInMyIggy
   Music:
     Key: Audio/Igloo/Music/Audio.Igloo.MUS.PartyInMyIggy
