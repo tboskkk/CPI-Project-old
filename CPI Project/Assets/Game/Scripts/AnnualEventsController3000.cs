@@ -587,7 +587,6 @@ public class AnnualEventsController3000 : MonoBehaviour
                         var contentKey = new PrefabContentKey(keyToUse);
                         contentKey.Key = keyToUse;
                         audioKeyField.SetValue(sceneAsset, contentKey);
-                        Debug.Log($"[MUSICDIAG] AnnualEvents: scene '{sceneName}' audio key set to '{keyToUse}'");
                     }
                 }
                 else
