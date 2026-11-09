@@ -392,13 +392,16 @@ namespace ClubPenguin
 			SceneDefinition sceneDefinition;
 			if (!sceneDefinitions.TryGetValue(scene, out sceneDefinition))
 			{
+				Debug.LogWarning("[MUSICDIAG] scene '" + scene + "': no scene definition, no scene audio loaded");
 				yield break;
 			}
 			PrefabContentKey audioContentKey = sceneDefinition.SceneAudioContentKey;
 			if (audioContentKey == null || string.IsNullOrEmpty(audioContentKey.Key) || !Content.ContainsKey(audioContentKey))
 			{
+				Debug.LogWarning("[MUSICDIAG] scene '" + scene + "': audio key '" + ((audioContentKey == null) ? "<null>" : audioContentKey.Key) + "' is " + ((audioContentKey == null || string.IsNullOrEmpty(audioContentKey.Key)) ? "empty" : "NOT in the content manifest") + ", no scene audio loaded");
 				yield break;
 			}
+			Debug.Log("[MUSICDIAG] scene '" + scene + "': loading audio key '" + audioContentKey.Key + "'");
 			AssetRequest<GameObject> audioRequest = Content.LoadAsync(audioContentKey);
 			yield return audioRequest;
 			if (audioRequest.Asset != null)
