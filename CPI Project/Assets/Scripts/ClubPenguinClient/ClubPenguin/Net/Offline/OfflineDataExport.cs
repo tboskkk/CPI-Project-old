@@ -79,6 +79,8 @@ namespace ClubPenguin.Net.Offline
 
 		public JetpackRebootOfflineData JetpackReboot;
 
+		public string SavedLocalOutfits;
+
 		[Invokable("Data.Export", Description = "Copy all of the account data for the given username into the clipboard")]
 		[PublicTweak(2018, 12, 21)]
 		public static void ExportData(string userName)
@@ -111,6 +113,11 @@ namespace ClubPenguin.Net.Offline
 				: userName;
 			if (!string.IsNullOrEmpty(objectToSerialize.UserName))
 			{
+				string outfitsKey = GetLocalOutfitsPlayerPrefsKey(objectToSerialize.UserName);
+				if (PlayerPrefs.HasKey(outfitsKey))
+				{
+					objectToSerialize.SavedLocalOutfits = PlayerPrefs.GetString(outfitsKey);
+				}
 				string dayKey = GetPlatformKey("OfflineMinigameProgress_Day_" + objectToSerialize.UserName);
 				string countKey = GetPlatformKey("OfflineMinigameProgress_fishing_" + objectToSerialize.UserName);
 				long.TryParse(PlayerPrefs.GetString(dayKey, "0"), out objectToSerialize.FishingDailyLimitDay);
@@ -252,6 +259,10 @@ namespace ClubPenguin.Net.Offline
 				PlayerPrefs.SetString(GetPlatformKey("OfflineMinigameProgress_Day_" + userName), offlineDataExport.FishingDailyLimitDay.ToString());
 				PlayerPrefs.SetInt(GetPlatformKey("OfflineMinigameProgress_fishing_" + userName), offlineDataExport.FishingDailyLimitPlayCount);
 			}
+			if (!string.IsNullOrEmpty(offlineDataExport.SavedLocalOutfits))
+			{
+				PlayerPrefs.SetString(GetLocalOutfitsPlayerPrefsKey(userName), offlineDataExport.SavedLocalOutfits);
+			}
 			WriteJetpackRebootData(offlineDataExport.JetpackReboot, userName);
 			PlayerPrefs.Save();
 		}
@@ -385,6 +396,11 @@ namespace ClubPenguin.Net.Offline
 			}
 #endif
 			return key;
+		}
+
+		private static string GetLocalOutfitsPlayerPrefsKey(string userName)
+		{
+			return "AvatarOutfits:" + userName.Trim().ToLowerInvariant();
 		}
 	}
 

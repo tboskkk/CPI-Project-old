@@ -1,6 +1,7 @@
 using ClubPenguin.Avatar;
 using ClubPenguin.Configuration;
 using ClubPenguin.Core;
+using ClubPenguin.Net;
 using ClubPenguin.Tags;
 using Disney.Kelowna.Common;
 using Disney.Kelowna.Common.DataModel;
@@ -16,6 +17,60 @@ namespace ClubPenguin
 {
 	public class AvatarOutfitCombineManager : AvatarController
 	{
+		private enum LocalOutfitActionType
+		{
+			Load,
+			Override,
+			Delete
+		}
+
+		[System.Serializable]
+		private class LocalOutfit
+		{
+			public string Name;
+
+			public DCustomEquipment[] Equipment;
+		}
+
+		[System.Serializable]
+		private class LocalOutfitCollection
+		{
+			public LocalOutfit[] Outfits = new LocalOutfit[0];
+		}
+
+		private class LocalOutfitSlotAction
+		{
+			private readonly string outfitName;
+
+			private readonly LocalOutfitActionType actionType;
+
+			public IInvokable Invokable;
+
+			public LocalOutfitSlotAction(string outfitName, LocalOutfitActionType actionType)
+			{
+				this.outfitName = outfitName;
+				this.actionType = actionType;
+			}
+
+			public void Invoke()
+			{
+				switch (actionType)
+				{
+					case LocalOutfitActionType.Load:
+						LoadSavedLocalOutfit(outfitName);
+						break;
+					case LocalOutfitActionType.Override:
+						SaveLocalOutfit(outfitName);
+						break;
+					case LocalOutfitActionType.Delete:
+						DeleteSavedLocalOutfit(outfitName);
+						break;
+				}
+			}
+		}
+
+		private static readonly List<LocalOutfitSlotAction> localOutfitSlotActions = new List<LocalOutfitSlotAction>();
+
 		public class EquipmentNameGenerator : NamedToggleValueAttribute.NamedToggleValueGenerator
 		{
 			public IEnumerable<NamedToggleValueAttribute.NamedToggleValue> GetNameToggleValues()
@@ -57,6 +112,83 @@ namespace ClubPenguin
 		private DCustomOutfit currentOutfit;
 
 		[PublicTweak]
+		[Invokable("Avatar.Outfit.SavedOutfits", Description = "Saves or overwrites a locally stored outfit for the current username.")]
+		public static void SaveLocalOutfit(string name)
+		{
+			if (!TryGetOutfitName(name, out name))
+			{
+				return;
+			}
+			string key;
+			if (!TryGetLocalOutfitsKey(out key))
+			{
+				return;
+			}
+			AvatarDetailsData avatarDetailsData;
+			if (!TryGetLocalAvatarDetails(out avatarDetailsData))
+			{
+				return;
+			}
+			LocalOutfitCollection collection = LoadLocalOutfitCollection(key);
+			LocalOutfit savedOutfit = collection.Outfits.FirstOrDefault((LocalOutfit outfit) => string.Equals(outfit.Name, name, System.StringComparison.OrdinalIgnoreCase));
+			if (savedOutfit == null)
+			{
+				savedOutfit = new LocalOutfit();
+				List<LocalOutfit> outfits = collection.Outfits.ToList();
+				outfits.Add(savedOutfit);
+				collection.Outfits = outfits.ToArray();
+			}
+			savedOutfit.Name = name;
+			savedOutfit.Equipment = avatarDetailsData.Outfit;
+			SaveLocalOutfitCollection(key, collection);
+			RefreshLocalOutfitInvokables();
+			UnityEngine.Debug.Log("Saved local outfit '" + name + "'.");
+		}
+
+		private static void LoadSavedLocalOutfit(string name)
+		{
+			string key;
+			if (!TryGetLocalOutfitsKey(out key))
+			{
+				return;
+			}
+			LocalOutfit savedOutfit = LoadLocalOutfitCollection(key).Outfits.FirstOrDefault((LocalOutfit outfit) => string.Equals(outfit.Name, name, System.StringComparison.OrdinalIgnoreCase));
+			if (savedOutfit == null)
+			{
+				UnityEngine.Debug.LogWarning("No local outfit named '" + name + "' was found for the current username.");
+				return;
+			}
+			AvatarDetailsData avatarDetailsData;
+			if (!TryGetLocalAvatarDetails(out avatarDetailsData))
+			{
+				return;
+			}
+			avatarDetailsData.Outfit = savedOutfit.Equipment;
+			UnityEngine.Debug.Log("Loaded local outfit '" + savedOutfit.Name + "'.");
+		}
+
+		private static void DeleteSavedLocalOutfit(string name)
+		{
+			string key;
+			if (!TryGetLocalOutfitsKey(out key))
+			{
+				return;
+			}
+			LocalOutfitCollection collection = LoadLocalOutfitCollection(key);
+			List<LocalOutfit> outfits = collection.Outfits.ToList();
+			int removed = outfits.RemoveAll((LocalOutfit outfit) => string.Equals(outfit.Name, name, System.StringComparison.OrdinalIgnoreCase));
+			if (removed == 0)
+			{
+				UnityEngine.Debug.LogWarning("No local outfit named '" + name + "' was found for the current username.");
+				return;
+			}
+			collection.Outfits = outfits.ToArray();
+			SaveLocalOutfitCollection(key, collection);
+			RefreshLocalOutfitInvokables();
+			UnityEngine.Debug.Log("Deleted local outfit '" + name + "'.");
+		}
+
+		[PublicTweak]
 		[Invokable("Avatar.Outfit.ChangeLocalOutfit", Description = "This updates the local penguin outfit removing everything but the specified template. This will not persist.")]
 		public static void ChangePenguinOutfit([NamedToggleValue(typeof(EquipmentNameGenerator), 0u)] int definitionId)
 		{
@@ -84,6 +216,141 @@ namespace ClubPenguin
 					dCustomEquipment
 				};
 			}
+		}
+
+		private static bool TryGetOutfitName(string name, out string trimmedName)
+		{
+			trimmedName = name == null ? null : name.Trim();
+			if (string.IsNullOrEmpty(trimmedName))
+			{
+				UnityEngine.Debug.LogWarning("An outfit name is required.");
+				return false;
+			}
+			return true;
+		}
+
+		private static bool TryGetLocalAvatarDetails(out AvatarDetailsData details)
+		{
+			if (!Service.IsSet<CPDataEntityCollection>())
+			{
+				UnityEngine.Debug.LogWarning("Cannot access the local player's outfit right now.");
+				details = null;
+				return false;
+			}
+			CPDataEntityCollection collection = Service.Get<CPDataEntityCollection>();
+			if (collection.TryGetComponent(collection.LocalPlayerHandle, out details))
+			{
+				return true;
+			}
+			UnityEngine.Debug.LogWarning("Cannot access the local player's outfit right now.");
+			return false;
+		}
+
+		private static bool TryGetLocalOutfitsKey(out string key)
+		{
+			if (!Service.IsSet<SessionManager>())
+			{
+				key = null;
+				UnityEngine.Debug.LogWarning("Cannot access local outfits without a current username.");
+				return false;
+			}
+			SessionManager sessionManager = Service.Get<SessionManager>();
+			if (sessionManager.LocalUser == null || sessionManager.LocalUser.RegistrationProfile == null)
+			{
+				key = null;
+				UnityEngine.Debug.LogWarning("Cannot access local outfits without a current username.");
+				return false;
+			}
+			string username = sessionManager.LocalUser.RegistrationProfile.Username;
+			if (string.IsNullOrEmpty(username))
+			{
+				key = null;
+				UnityEngine.Debug.LogWarning("Cannot access local outfits without a current username.");
+				return false;
+			}
+			key = "AvatarOutfits:" + username.Trim().ToLowerInvariant();
+			return true;
+		}
+
+		private static LocalOutfitCollection LoadLocalOutfitCollection(string key)
+		{
+			if (!PlayerPrefs.HasKey(key))
+			{
+				return new LocalOutfitCollection();
+			}
+			LocalOutfitCollection collection = JsonUtility.FromJson<LocalOutfitCollection>(PlayerPrefs.GetString(key));
+			if (collection == null || collection.Outfits == null)
+			{
+				UnityEngine.Debug.LogWarning("Saved local outfits could not be read; starting with an empty outfit list.");
+				return new LocalOutfitCollection();
+			}
+			return collection;
+		}
+
+		private static void SaveLocalOutfitCollection(string key, LocalOutfitCollection collection)
+		{
+			PlayerPrefs.SetString(key, JsonUtility.ToJson(collection));
+			PlayerPrefs.Save();
+		}
+
+		private static void RefreshLocalOutfitInvokables()
+		{
+			if (!Service.IsSet<Tweaker.UI.TweakerConsoleController>())
+			{
+				return;
+			}
+			Tweaker.UI.TweakerConsoleController console = Service.Get<Tweaker.UI.TweakerConsoleController>();
+			if (console.Tweaker == null)
+			{
+				return;
+			}
+			IInvokableManager manager = console.Tweaker.Invokables;
+			string key;
+			if (!TryGetLocalOutfitsKey(out key))
+			{
+				UnregisterLocalOutfitInvokables();
+				console.Refresh();
+				return;
+			}
+			UnregisterLocalOutfitInvokables();
+			LocalOutfit[] outfits = LoadLocalOutfitCollection(key).Outfits;
+			for (int i = 0; i < outfits.Length; i++)
+			{
+				if (outfits[i] == null || string.IsNullOrEmpty(outfits[i].Name))
+				{
+					UnityEngine.Debug.LogWarning("Skipping a saved outfit slot without a name.");
+					continue;
+				}
+				string itemName = (i + 1) + "_" + outfits[i].Name.Replace(".", "_");
+				RegisterLocalOutfitAction(manager, itemName + ".Load", outfits[i].Name, LocalOutfitActionType.Load);
+				RegisterLocalOutfitAction(manager, itemName + ".Override", outfits[i].Name, LocalOutfitActionType.Override);
+				RegisterLocalOutfitAction(manager, itemName + ".Delete", outfits[i].Name, LocalOutfitActionType.Delete);
+			}
+			console.Refresh();
+		}
+
+		private static void RegisterLocalOutfitAction(IInvokableManager manager, string actionName, string outfitName, LocalOutfitActionType actionType)
+		{
+			LocalOutfitSlotAction action = new LocalOutfitSlotAction(outfitName, actionType);
+			InvokableInfo info = new InvokableInfo(
+				"Avatar.Outfit.Saved." + actionName,
+				0u,
+				new ICustomTweakerAttribute[] { new PublicTweak() },
+				actionType.ToString() + " saved outfit '" + outfitName + "'.");
+			action.Invokable = manager.RegisterInvokable(info, (System.Action)action.Invoke);
+			localOutfitSlotActions.Add(action);
+		}
+
+		private static void UnregisterLocalOutfitInvokables()
+		{
+			foreach (LocalOutfitSlotAction action in localOutfitSlotActions)
+			{
+				if (action.Invokable != null && action.Invokable.Manager != null)
+				{
+					action.Invokable.Manager.UnregisterInvokable(action.Invokable);
+				}
+			}
+			localOutfitSlotActions.Clear();
 		}
 
 		public override void Awake()
@@ -170,6 +437,10 @@ namespace ClubPenguin
 
 		private void processAvatarDetails(DataEntityHandle handle)
 		{
+			if (handle == dataEntityCollection.LocalPlayerHandle)
+			{
+				RefreshLocalOutfitInvokables();
+			}
 			if (avatarDetailsData.Outfit != null)
 			{
 				onPlayerOutfitChanged(avatarDetailsData.Outfit);
