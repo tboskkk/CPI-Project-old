@@ -255,6 +255,7 @@ namespace ClubPenguin.Game.PartyGames
 				Screens[7].SetActive(false);
 			}
 			musicTargetObject = GameObject.Find(MusicTargetObjectPath);
+			Debug.Log("[MUSICDIAG] DanceBattle: music target '" + MusicTargetObjectPath + "' " + ((musicTargetObject == null) ? "NOT FOUND" : "found"));
 			Content.LoadAsync(onMoveIconLoaded, MoveIconKey);
 		}
 
@@ -296,6 +297,16 @@ namespace ClubPenguin.Game.PartyGames
 			moveIconPrefab = prefab;
 		}
 
+		private void postMusic(string eventName, EventAction action, string parameter)
+		{
+			if (musicTargetObject == null)
+			{
+				musicTargetObject = GameObject.Find(MusicTargetObjectPath);
+			}
+			Debug.Log("[MUSICDIAG] DanceBattle posts " + eventName + " " + action + " '" + parameter + "' (state " + currentState + ", target " + ((musicTargetObject == null) ? "NULL" : "ok") + ")");
+			EventManager.Instance.PostEvent(eventName, action, parameter, musicTargetObject);
+		}
+
 		private void onLobbyStarted(long gameStartTime)
 		{
 			setState(DanceBattleVisualsState.Lobby);
@@ -304,7 +315,7 @@ namespace ClubPenguin.Game.PartyGames
 			LobbyTimer.StartTimer(new TimeSpan(0, 0, (int)num2));
 			Content.LoadAsync(onLobbyPrefabLoaded, LobbyPrefabKey);
 			turnOnEffectsForLobby();
-			EventManager.Instance.PostEvent("MUS/Town/DJCadence", EventAction.SetSwitch, "CadenceIntro", musicTargetObject);
+			postMusic("MUS/Town/DJCadence", EventAction.SetSwitch, "CadenceIntro");
 		}
 
 		private void onLobbyPrefabLoaded(string key, GameObject lobbyPrefab)
@@ -334,7 +345,7 @@ namespace ClubPenguin.Game.PartyGames
 					PartyGameUtils.EnableMainNavigation();
 				}
 				localPlayerIsInGame = false;
-				EventManager.Instance.PostEvent("MUS/Town/DJCadence", EventAction.SetSwitch, "Evergreen", musicTargetObject);
+				postMusic("MUS/Town/DJCadence", EventAction.SetSwitch, "Evergreen");
 			}
 			if (topHud != null)
 			{
@@ -417,7 +428,7 @@ namespace ClubPenguin.Game.PartyGames
 			{
 				DanceBattleUtils.LogDanceStartBI(numPlayersInLobby);
 			}
-			EventManager.Instance.PostEvent("MUS/Town/DJCadence/IntroAdvance", EventAction.PlaySound, null, musicTargetObject);
+			postMusic("MUS/Town/DJCadence/IntroAdvance", EventAction.PlaySound, null);
 			if (topHud != null)
 			{
 				RemoveTopHud();
@@ -441,7 +452,7 @@ namespace ClubPenguin.Game.PartyGames
 			moveIconList.Clear();
 			setChatVisible(true);
 			localPlayerIsInGame = false;
-			EventManager.Instance.PostEvent("MUS/Town/DJCadence", EventAction.SetSwitch, "Evergreen", musicTargetObject);
+			postMusic("MUS/Town/DJCadence", EventAction.SetSwitch, "Evergreen");
 		}
 
 		private void turnOnEffectsForLobby()
@@ -529,7 +540,7 @@ namespace ClubPenguin.Game.PartyGames
 				setChatVisible(true);
 				StageAnimator.SetTrigger("StrobesHigh");
 				string parameter = string.Format("High{0}", currentTurnData.RoundNum);
-				EventManager.Instance.PostEvent("MUS/Town/DJCadence/DanceGame", EventAction.SetSwitch, parameter, musicTargetObject);
+				postMusic("MUS/Town/DJCadence/DanceGame", EventAction.SetSwitch, parameter);
 				dispatcher.DispatchEvent(default(DanceBattleEvents.TurnTimerComplete));
 				break;
 			}
@@ -554,7 +565,7 @@ namespace ClubPenguin.Game.PartyGames
 				{
 					CoroutineRunner.Start(switchStateAfterDelay(danceBattleDefinition.TurnStartDelayInSeconds, DanceBattleVisualsState.FinalResults), this, "DanceBattleResultsWait");
 				}
-				EventManager.Instance.PostEvent("MUS/Town/DJCadence/DanceGame", EventAction.SetSwitch, "Low", musicTargetObject);
+				postMusic("MUS/Town/DJCadence/DanceGame", EventAction.SetSwitch, "Low");
 				break;
 			}
 			case DanceBattleVisualsState.FinalResults:
@@ -588,11 +599,11 @@ namespace ClubPenguin.Game.PartyGames
 					}
 					if (flag || localPlayerTeamId == num)
 					{
-						EventManager.Instance.PostEvent("MUS/Town/DJCadence/DanceGame", EventAction.SetSwitch, "Win", musicTargetObject);
+						postMusic("MUS/Town/DJCadence/DanceGame", EventAction.SetSwitch, "Win");
 					}
 					else
 					{
-						EventManager.Instance.PostEvent("MUS/Town/DJCadence/DanceGame", EventAction.SetSwitch, "Lose", musicTargetObject);
+						postMusic("MUS/Town/DJCadence/DanceGame", EventAction.SetSwitch, "Lose");
 					}
 					dispatcher.DispatchEvent(new DanceBattleEvents.FinalResultsShown(flag, num));
 					if (EndGameParticleSelector != null)
@@ -617,7 +628,7 @@ namespace ClubPenguin.Game.PartyGames
 		private IEnumerator playDanceMusicAfterDelay(float delay)
 		{
 			yield return new WaitForSeconds(delay);
-			EventManager.Instance.PostEvent("MUS/Town/DJCadence", EventAction.SetSwitch, "DanceGame", musicTargetObject);
+			postMusic("MUS/Town/DJCadence", EventAction.SetSwitch, "DanceGame");
 		}
 
 		private void startTimerForNextLobbyStart()
