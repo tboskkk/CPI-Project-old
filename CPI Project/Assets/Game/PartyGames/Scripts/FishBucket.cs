@@ -469,6 +469,12 @@ namespace ClubPenguin.Game.PartyGames
 				playerPositions[i - 1] = spawnLocations.GetPlayerPosition(i);
 			}
 			gamePositions[0] = localPlayerGameObject.transform.position;
+			string spawnDebug = "[FishBucket] spawn checker at " + ownerPosition + " root " + spawnLocations.transform.position + " slots " + spawnLocations.PlayerPositions.Length;
+			for (int i = 0; i < spawnLocations.PlayerPositions.Length; i++)
+			{
+				spawnDebug += " | " + i + " transform " + (spawnLocations.PlayerPositions[i] != null ? spawnLocations.PlayerPositions[i].position.ToString() : "null") + " raycast " + spawnLocations.GetPlayerPosition(i);
+			}
+			Debug.Log(spawnDebug);
 			startPositions.PlayerPositions = playerPositions;
 			startPositions.GamePositions = gamePositions;
 			sendSessionMessage(PartyGameSessionMessageTypes.SetGameStartPositions, startPositions);
