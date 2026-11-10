@@ -592,6 +592,12 @@ namespace ClubPenguin
         public void AnnualParties_End()
         {
             AnnualEventsController3000 controller = AnnualEventsController3000.Instance;
+            if (controller != null && controller.ServerControlsParties)
+            {
+                Debug.Log("[PartySwitcher] parties are set by the server");
+                return;
+            }
+
             if (controller != null)
             {
                 controller.ForceEndParty();
@@ -607,6 +613,12 @@ namespace ClubPenguin
         public void AnnualParties_Default()
         {
             AnnualEventsController3000 controller = AnnualEventsController3000.Instance;
+            if (controller != null && controller.ServerControlsParties)
+            {
+                Debug.Log("[PartySwitcher] parties are set by the server");
+                return;
+            }
+
             if (controller != null)
             {
                 controller.SetDefaultMode();
@@ -622,6 +634,12 @@ namespace ClubPenguin
         public void AnnualParties_Switch([NamedToggleValue(typeof(AnnualEventKeyGenerator), 0u)][ArgDescription("Change rooms for this setting to take effect.")] string Party)
         {
             AnnualEventsController3000 controller = AnnualEventsController3000.Instance;
+            if (controller != null && controller.ServerControlsParties)
+            {
+                Debug.Log("[PartySwitcher] parties are set by the server");
+                return;
+            }
+
             if (controller != null)
             {
                 controller.ForceEndParty();
