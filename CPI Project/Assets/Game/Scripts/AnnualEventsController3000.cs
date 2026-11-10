@@ -87,7 +87,6 @@ public class AnnualEventsController3000 : MonoBehaviour
         public string EventAudioKey;
     }
 
-    // The party schedule an iceberg-style server publishes at <CDN>/cdn/party-schedule.json.
     [Serializable]
     private class ServerSchedule
     {
@@ -119,22 +118,17 @@ public class AnnualEventsController3000 : MonoBehaviour
     private bool settingsSeen;
     private bool serverTimeSeen;
 
-    // True while a server schedule (fetched or cached) is in effect and a game server is
-    // configured: the server decides the parties and the Party Switcher stands down.
     public bool ServerControlsParties
     {
         get { return serverSchedule != null && !IsOffline(); }
     }
 
-    // OpenCPI keeps OfflineMode on even when it talks to a private server, so "offline"
-    // here means no game server is configured (the game's own IsGameServerAvailable check).
     private static bool IsOffline()
     {
         return Service.IsSet<ClubPenguin.GameSettings>() && !ClubPenguin.DisableWhenNoGameServer.IsGameServerAvailable();
     }
 
 
-    // Server time once the game server has sent it, else the local clock.
     private DateTimeOffset CurrentTime()
     {
         if (Service.IsSet<INetworkServicesManager>())
@@ -222,7 +216,6 @@ public class AnnualEventsController3000 : MonoBehaviour
 
     private void Update()
     {
-        // Offline mode and the server clock become known after Awake: apply again when they do.
         bool reapply = false;
         if (!settingsSeen && Service.IsSet<ClubPenguin.GameSettings>())
         {
@@ -255,7 +248,6 @@ public class AnnualEventsController3000 : MonoBehaviour
             }
             else
             {
-                // The CDN setting isn't available yet.
                 nextFetchTime = Time.time + 1f;
             }
         }
@@ -273,9 +265,6 @@ public class AnnualEventsController3000 : MonoBehaviour
         }
     }
 
-    // A server that doesn't publish a schedule answers 404: that is not an error. Any
-    // cached schedule is dropped and the built-in calendar is used, checked again every
-    // refresh interval. Other failures keep the cached schedule and retry a few times.
     private IEnumerator FetchServerSchedule(string url)
     {
         string failure = null;
@@ -369,8 +358,6 @@ public class AnnualEventsController3000 : MonoBehaviour
         return month >= 1 && month <= 12 && day >= 1 && day <= DaysInMonth[month - 1];
     }
 
-    // Accepts only version 1 with a known mode and at most 200 entries. An entry with a bad
-    // date is dropped on its own; other fields in the JSON are ignored.
     private static bool TryParseSchedule(string json, out ServerSchedule schedule)
     {
         schedule = null;
@@ -420,7 +407,6 @@ public class AnnualEventsController3000 : MonoBehaviour
         return null;
     }
 
-    // An event's dates and date-system flag: the server's when it lists the event, else the inspector's.
     private void GetEventDates(EventInfo info, out bool excluded, out int startMonth, out int startDay, out int endMonth, out int endDay)
     {
         excluded = info.excludeFromDateSystem;
@@ -639,7 +625,6 @@ public class AnnualEventsController3000 : MonoBehaviour
         string forced = forcedEventKey;
         if (server)
         {
-            // The server's choice, without touching the player's saved override.
             mode = serverSchedule.mode == "party" ? OverrideMode.ForceEvent : serverSchedule.mode == "none" ? OverrideMode.ForceRegular : OverrideMode.Automatic;
             forced = serverSchedule.mode == "party" ? serverSchedule.party : null;
         }
@@ -694,7 +679,6 @@ public class AnnualEventsController3000 : MonoBehaviour
             int evStartMonth, evStartDay, evEndMonth, evEndDay;
             GetEventDates(eventInfo, out excluded, out evStartMonth, out evStartDay, out evEndMonth, out evEndDay);
 
-            // (From the server, an excluded event that isn't the forced one is reset below, not skipped.)
             if (!server && excluded && mode == OverrideMode.ForceEvent && currentEventKey != forced)
             {
                 continue;
@@ -750,8 +734,6 @@ public class AnnualEventsController3000 : MonoBehaviour
                                 if (isEventActive)
                                 {
                                     DateTime today = currentDateUtc.UtcDateTime;
-                                    // From the server: start yesterday, because before the game server's clock arrives
-                                    // (login screen, first room join) the game reads time 8 hours behind UTC.
                                     DateTime from = server ? today.AddDays(-1) : today;
                                     startYear = from.Year;
                                     startMonth = from.Month;
