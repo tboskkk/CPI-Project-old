@@ -88,6 +88,8 @@
 
 > [Maksim](https://github.com/loozmax)
 
+> [tboskkk](https://github.com/tboskkk)
+
 > miraculizado (Discord)
 
 > approt (Discord)
