@@ -594,7 +594,6 @@ namespace ClubPenguin
             AnnualEventsController3000 controller = AnnualEventsController3000.Instance;
             if (controller != null && controller.ServerControlsParties)
             {
-                Debug.Log("[PartySwitcher] parties are set by the server");
                 return;
             }
 
@@ -615,7 +614,6 @@ namespace ClubPenguin
             AnnualEventsController3000 controller = AnnualEventsController3000.Instance;
             if (controller != null && controller.ServerControlsParties)
             {
-                Debug.Log("[PartySwitcher] parties are set by the server");
                 return;
             }
 
@@ -636,7 +634,6 @@ namespace ClubPenguin
             AnnualEventsController3000 controller = AnnualEventsController3000.Instance;
             if (controller != null && controller.ServerControlsParties)
             {
-                Debug.Log("[PartySwitcher] parties are set by the server");
                 return;
             }
 
