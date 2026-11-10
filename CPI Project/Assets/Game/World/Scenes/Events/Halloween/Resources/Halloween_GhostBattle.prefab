@@ -259431,8 +259431,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: db900822ec1966ddc64bd07e601a5ce0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  TotalRewards: {fileID: 11400000, guid: d8561e9495e696f4499368e4de5abd38, type: 2}
-  MinPerPlayerRewards: {fileID: 11400000, guid: 924e216c18999c74db22f9832d6e738a,
+  TotalRewards: {fileID: 11400000, guid: fe40f0e7062a44a469bf5b871041e105, type: 2}
+  MinPerPlayerRewards: {fileID: 11400000, guid: e1c4663a2e15a084b9c7f8b50acc1852,
     type: 2}
 --- !u!1 &1385835495270093
 GameObject:
@@ -259481,8 +259481,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: db900822ec1966ddc64bd07e601a5ce0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  TotalRewards: {fileID: 11400000, guid: d8561e9495e696f4499368e4de5abd38, type: 2}
-  MinPerPlayerRewards: {fileID: 11400000, guid: 924e216c18999c74db22f9832d6e738a,
+  TotalRewards: {fileID: 11400000, guid: fe40f0e7062a44a469bf5b871041e105, type: 2}
+  MinPerPlayerRewards: {fileID: 11400000, guid: e1c4663a2e15a084b9c7f8b50acc1852,
     type: 2}
 --- !u!1 &1386025602533559
 GameObject:
