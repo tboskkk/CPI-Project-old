@@ -2,6 +2,7 @@ using DevonLocalization.Core;
 using Disney.MobileNetwork;
 using UnityEngine;
 using UnityEngine.UI;
+using TMPro;
 
 namespace ClubPenguin.UI
 {
@@ -13,15 +14,15 @@ namespace ClubPenguin.UI
 
 		public Image BackgroundImage;
 
-		public Text PriceText;
+		public TMP_Text PriceText;
 
-		public Text HeaderText;
+		public TMP_Text HeaderText;
 
-		public Text DescriptionText;
+		public TMP_Text DescriptionText;
 
-		public Text ListHeaderText;
+		public TMP_Text ListHeaderText;
 
-		public Text ListLevelText;
+		public TMP_Text ListLevelText;
 
 		public GameObject ListLevelItem;
 

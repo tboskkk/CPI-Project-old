@@ -3,6 +3,7 @@ using Disney.MobileNetwork;
 using System;
 using UnityEngine;
 using UnityEngine.UI;
+using TMPro;
 
 namespace ClubPenguin.UI
 {
@@ -26,15 +27,15 @@ namespace ClubPenguin.UI
 
 		public GameObject LearnMoreButton;
 
-		public Text HeaderText;
+		public TMP_Text HeaderText;
 
-		public Text DescriptionText;
+		public TMP_Text DescriptionText;
 
-		public Text ListHeaderText;
+		public TMP_Text ListHeaderText;
 
-		public Text ListLevelText;
+		public TMP_Text ListLevelText;
 
-		public Text ListBuyCountText;
+		public TMP_Text ListBuyCountText;
 
 		public GameObject ListLevelItem;
 

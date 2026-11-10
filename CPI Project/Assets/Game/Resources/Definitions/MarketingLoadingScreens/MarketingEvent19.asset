@@ -17,5 +17,5 @@ MonoBehaviour:
   - Key: MarketingLoadingScreenPrefabs/MarketingLoadScreen_CadenceComingSoon
     type: UnityEngine.GameObject, UnityEngine
   DateDefinitionKey:
-    Id: 1
+    Id: 7
     type: ClubPenguin.Core.ScheduledEventDateDefinition, Core

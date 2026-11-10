@@ -16,8 +16,6 @@ MonoBehaviour:
   ScreenPrefabContentKeys:
   - Key: MarketingLoadingScreenPrefabs/MarketingLoadScreen_TubeRace
     type: UnityEngine.GameObject, UnityEngine
-  - Key: MarketingLoadingScreenPrefabs/MarketingLoadScreen_CadenceAdventures
-    type: UnityEngine.GameObject, UnityEngine
   - Key: MarketingLoadingScreenPrefabs/MarketingLoadScreen_Anniversary
     type: UnityEngine.GameObject, UnityEngine
   DateDefinitionKey:
