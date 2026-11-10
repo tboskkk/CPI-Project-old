@@ -1,9 +1,13 @@
 ﻿using UnityEngine;
+using UnityEngine.Networking;
 using System;
+using System.Collections;
 using System.Reflection;
 using System.Collections.Generic;
 using Disney.Kelowna.Common;
+using Disney.MobileNetwork;
 using ClubPenguin.Core;
+using ClubPenguin.Net;
 
 public class AnnualEventsController3000 : MonoBehaviour
 {
@@ -18,6 +22,10 @@ public class AnnualEventsController3000 : MonoBehaviour
 
     private const string PLAYERPREFS_OVERRIDE_MODE_KEY = "AnnualEventsController.OverrideMode";
     private const string PLAYERPREFS_FORCED_EVENT_KEY = "AnnualEventsController.ForcedEventKey";
+    private const string PLAYERPREFS_SERVER_SCHEDULE_KEY = "AnnualEventsController.ServerSchedule";
+    private const string SERVER_SCHEDULE_PATH = "cdn/party-schedule.json";
+    private const int SERVER_SCHEDULE_MAX_BYTES = 65536;
+    private const int SERVER_SCHEDULE_MAX_ENTRIES = 200;
 
     [UnityEngine.Scripting.Preserve]
     private OverrideMode overrideMode = OverrideMode.Automatic;
@@ -79,8 +87,66 @@ public class AnnualEventsController3000 : MonoBehaviour
         public string EventAudioKey;
     }
 
+    // The party schedule an iceberg-style server publishes at <CDN>/cdn/party-schedule.json.
+    [Serializable]
+    private class ServerSchedule
+    {
+        public int version;
+        public string mode;
+        public string party;
+        public ServerEntry[] calendar;
+    }
+
+    [Serializable]
+    private class ServerEntry
+    {
+        public int id;
+        public string name;
+        public string start;
+        public string end;
+        public bool calendar;
+    }
+
     [Header("Annual events (loops every year).")]
     public EventInfo[] events;
+
+    private ServerSchedule serverSchedule;
+    private bool fetching;
+    private int fetchFailures;
+    private string lastFetchFailure;
+    private string lastApplied;
+    private float nextFetchTime;
+    private bool settingsSeen;
+    private bool serverTimeSeen;
+
+    // True while a server schedule (fetched or cached) is in effect and a game server is
+    // configured: the server decides the parties and the Party Switcher stands down.
+    public bool ServerControlsParties
+    {
+        get { return serverSchedule != null && !IsOffline(); }
+    }
+
+    // OpenCPI keeps OfflineMode on even when it talks to a private server, so "offline"
+    // here means no game server is configured (the game's own IsGameServerAvailable check).
+    private static bool IsOffline()
+    {
+        return Service.IsSet<ClubPenguin.GameSettings>() && !ClubPenguin.DisableWhenNoGameServer.IsGameServerAvailable();
+    }
+
+
+    // Server time once the game server has sent it, else the local clock.
+    private DateTimeOffset CurrentTime()
+    {
+        if (Service.IsSet<INetworkServicesManager>())
+        {
+            INetworkServicesManager network = Service.Get<INetworkServicesManager>();
+            if (network.GameTimeMilliseconds > 0)
+            {
+                return new DateTimeOffset(DateTime.SpecifyKind(network.ServerDateTime, DateTimeKind.Utc));
+            }
+        }
+        return DateTimeOffset.UtcNow;
+    }
 
 
     public bool IsPartySwitchForced
@@ -142,6 +208,7 @@ public class AnnualEventsController3000 : MonoBehaviour
         DontDestroyOnLoad(gameObject);
 
         LoadOverrideState();
+        LoadCachedServerSchedule();
 
         if (events.Length == 0)
         {
@@ -155,10 +222,218 @@ public class AnnualEventsController3000 : MonoBehaviour
 
     private void Update()
     {
+        // Offline mode and the server clock become known after Awake: apply again when they do.
+        bool reapply = false;
+        if (!settingsSeen && Service.IsSet<ClubPenguin.GameSettings>())
+        {
+            settingsSeen = true;
+            reapply = serverSchedule != null;
+        }
+        if (!serverTimeSeen && Service.IsSet<INetworkServicesManager>() && Service.Get<INetworkServicesManager>().GameTimeMilliseconds > 0)
+        {
+            serverTimeSeen = true;
+            reapply = true;
+        }
+
         if (Time.time >= nextRefreshTime)
         {
-            ApplyEvents();
+            reapply = true;
             nextRefreshTime = Time.time + refreshInterval;
+        }
+        if (reapply)
+        {
+            ApplyEvents();
+        }
+
+        if (!fetching && Time.time >= nextFetchTime && settingsSeen && !IsOffline())
+        {
+            string url = ServerScheduleUrl();
+            if (url != null)
+            {
+                fetching = true;
+                StartCoroutine(FetchServerSchedule(url));
+            }
+            else
+            {
+                // The CDN setting isn't available yet.
+                nextFetchTime = Time.time + 1f;
+            }
+        }
+    }
+
+    private static string ServerScheduleUrl()
+    {
+        try
+        {
+            return ContentHelper.GetCdnUrl() + SERVER_SCHEDULE_PATH;
+        }
+        catch (Exception)
+        {
+            return null;
+        }
+    }
+
+    // A server that doesn't publish a schedule answers 404: that is not an error. Any
+    // cached schedule is dropped and the built-in calendar is used, checked again every
+    // refresh interval. Other failures keep the cached schedule and retry a few times.
+    private IEnumerator FetchServerSchedule(string url)
+    {
+        string failure = null;
+        bool noSchedule = false;
+        try
+        {
+            using (UnityWebRequest request = UnityWebRequest.Get(url))
+            {
+                request.timeout = 10;
+                yield return request.SendWebRequest();
+                if (request.responseCode == 404)
+                {
+                    noSchedule = true;
+                }
+                else if (request.result != UnityWebRequest.Result.Success)
+                {
+                    failure = request.error;
+                }
+                else
+                {
+                    byte[] data = request.downloadHandler.data;
+                    ServerSchedule parsed;
+                    if (data == null || data.Length > SERVER_SCHEDULE_MAX_BYTES)
+                    {
+                        failure = "bad size";
+                    }
+                    else
+                    {
+                        string json = System.Text.Encoding.UTF8.GetString(data);
+                        if (TryParseSchedule(json, out parsed))
+                        {
+                            serverSchedule = parsed;
+                            fetchFailures = 0;
+                            PlayerPrefs.SetString(GetPlatformKey(PLAYERPREFS_SERVER_SCHEDULE_KEY), json);
+                            PlayerPrefs.Save();
+                            ApplyEvents();
+                        }
+                        else
+                        {
+                            failure = "bad schedule";
+                        }
+                    }
+                }
+            }
+
+            if (noSchedule && serverSchedule != null)
+            {
+                serverSchedule = null;
+                PlayerPrefs.DeleteKey(GetPlatformKey(PLAYERPREFS_SERVER_SCHEDULE_KEY));
+                ApplyEvents();
+            }
+            if (failure != null && failure != lastFetchFailure)
+            {
+                Debug.Log("[PartySchedule] fetch failed (" + failure + "), using " + (serverSchedule != null ? "the cached schedule" : "the built-in calendar"));
+            }
+            lastFetchFailure = failure;
+        }
+        finally
+        {
+            if (failure != null) fetchFailures++;
+            bool retrySoon = failure != null && serverSchedule == null && fetchFailures < 3;
+            nextFetchTime = Time.time + (retrySoon ? 60f : refreshInterval);
+            fetching = false;
+        }
+    }
+
+    private void LoadCachedServerSchedule()
+    {
+        string json = PlayerPrefs.GetString(GetPlatformKey(PLAYERPREFS_SERVER_SCHEDULE_KEY), null);
+        ServerSchedule parsed;
+        if (!string.IsNullOrEmpty(json) && TryParseSchedule(json, out parsed))
+        {
+            serverSchedule = parsed;
+        }
+    }
+
+    private static readonly int[] DaysInMonth = { 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
+
+    private static bool TryMonthDay(string text, out int month, out int day)
+    {
+        month = 0;
+        day = 0;
+        if (text == null || text.Length != 5 || text[2] != '-')
+        {
+            return false;
+        }
+        if (!int.TryParse(text.Substring(0, 2), out month) || !int.TryParse(text.Substring(3, 2), out day))
+        {
+            return false;
+        }
+        return month >= 1 && month <= 12 && day >= 1 && day <= DaysInMonth[month - 1];
+    }
+
+    // Accepts only version 1 with a known mode and at most 200 entries. An entry with a bad
+    // date is dropped on its own; other fields in the JSON are ignored.
+    private static bool TryParseSchedule(string json, out ServerSchedule schedule)
+    {
+        schedule = null;
+        try
+        {
+            ServerSchedule parsed = JsonUtility.FromJson<ServerSchedule>(json);
+            if (parsed == null || parsed.version != 1 || parsed.calendar == null || parsed.calendar.Length > SERVER_SCHEDULE_MAX_ENTRIES)
+            {
+                return false;
+            }
+            if (parsed.mode != "auto" && parsed.mode != "party" && parsed.mode != "none")
+            {
+                return false;
+            }
+            List<ServerEntry> good = new List<ServerEntry>();
+            foreach (ServerEntry entry in parsed.calendar)
+            {
+                int m, d;
+                if (entry != null && entry.id > 0 && !string.IsNullOrEmpty(entry.name) && TryMonthDay(entry.start, out m, out d) && TryMonthDay(entry.end, out m, out d))
+                {
+                    good.Add(entry);
+                }
+            }
+            parsed.calendar = good.ToArray();
+            schedule = parsed;
+            return true;
+        }
+        catch (Exception)
+        {
+            return false;
+        }
+    }
+
+    private ServerEntry FindServerEntry(EventInfo info)
+    {
+        if (serverSchedule == null || info == null)
+        {
+            return null;
+        }
+        foreach (ServerEntry entry in serverSchedule.calendar)
+        {
+            if (entry.id.ToString() == info.eventID && entry.name == info.eventName)
+            {
+                return entry;
+            }
+        }
+        return null;
+    }
+
+    // An event's dates and date-system flag: the server's when it lists the event, else the inspector's.
+    private void GetEventDates(EventInfo info, out bool excluded, out int startMonth, out int startDay, out int endMonth, out int endDay)
+    {
+        excluded = info.excludeFromDateSystem;
+        startMonth = info.startMonth;
+        startDay = info.startDay;
+        endMonth = info.endMonth;
+        endDay = info.endDay;
+        ServerEntry entry = ServerControlsParties ? FindServerEntry(info) : null;
+        if (entry != null)
+        {
+            excluded = !entry.calendar;
+            TryMonthDay(entry.start, out startMonth, out startDay);
+            TryMonthDay(entry.end, out endMonth, out endDay);
         }
     }
 
@@ -359,10 +634,26 @@ public class AnnualEventsController3000 : MonoBehaviour
         activeSceneKeys.Clear();
         seenScenes.Clear();
 
-        int currentYear = DateTime.UtcNow.Year;
-        DateTimeOffset currentDateUtc = DateTimeOffset.UtcNow;
+        bool server = ServerControlsParties;
+        OverrideMode mode = overrideMode;
+        string forced = forcedEventKey;
+        if (server)
+        {
+            // The server's choice, without touching the player's saved override.
+            mode = serverSchedule.mode == "party" ? OverrideMode.ForceEvent : serverSchedule.mode == "none" ? OverrideMode.ForceRegular : OverrideMode.Automatic;
+            forced = serverSchedule.mode == "party" ? serverSchedule.party : null;
+        }
 
-        if (overrideMode == OverrideMode.ForceEvent && string.IsNullOrEmpty(forcedEventKey) && events != null && events.Length > 0)
+        DateTimeOffset currentDateUtc = CurrentTime();
+        int currentYear = currentDateUtc.Year;
+        string applied = (server ? "server" : "local") + " mode=" + mode + " party=" + (forced ?? "-");
+        if (applied != lastApplied)
+        {
+            lastApplied = applied;
+            Debug.Log("[PartySchedule] apply: source=" + applied + " now=" + currentDateUtc.ToString("u"));
+        }
+
+        if (!server && mode == OverrideMode.ForceEvent && string.IsNullOrEmpty(forced) && events != null && events.Length > 0)
         {
             foreach (var e in events)
             {
@@ -376,16 +667,17 @@ public class AnnualEventsController3000 : MonoBehaviour
             {
                 forcedEventKey = BuildEventKey(events[0]);
             }
+            forced = forcedEventKey;
             SaveOverrideState();
         }
 
         int forcedEventId = -1;
-        if (overrideMode == OverrideMode.ForceEvent && events != null)
+        if (mode == OverrideMode.ForceEvent && events != null)
         {
             foreach (var eventInfo in events)
             {
                 int eventId;
-                if (eventInfo != null && (BuildEventKey(eventInfo) == forcedEventKey || eventInfo.eventID == forcedEventKey || eventInfo.eventName == forcedEventKey) && int.TryParse(eventInfo.eventID, out eventId))
+                if (eventInfo != null && (BuildEventKey(eventInfo) == forced || eventInfo.eventID == forced || eventInfo.eventName == forced) && int.TryParse(eventInfo.eventID, out eventId))
                 {
                     forcedEventId = eventId;
                     break;
@@ -398,7 +690,12 @@ public class AnnualEventsController3000 : MonoBehaviour
         {
             string currentEventKey = BuildEventKey(eventInfo);
             
-            if (eventInfo.excludeFromDateSystem && overrideMode == OverrideMode.ForceEvent && currentEventKey != forcedEventKey)
+            bool excluded;
+            int evStartMonth, evStartDay, evEndMonth, evEndDay;
+            GetEventDates(eventInfo, out excluded, out evStartMonth, out evStartDay, out evEndMonth, out evEndDay);
+
+            // (From the server, an excluded event that isn't the forced one is reset below, not skipped.)
+            if (!server && excluded && mode == OverrideMode.ForceEvent && currentEventKey != forced)
             {
                 continue;
             }
@@ -432,11 +729,11 @@ public class AnnualEventsController3000 : MonoBehaviour
                         {
                             bool isEventActive = false;
                             
-                            if (overrideMode == OverrideMode.ForceEvent && currentEventKey == forcedEventKey)
+                            if (mode == OverrideMode.ForceEvent && currentEventKey == forced)
                             {
                                 isEventActive = true;
                             }
-                            else if (overrideMode == OverrideMode.ForceRegular)
+                            else if (mode == OverrideMode.ForceRegular)
                             {
                                 isEventActive = false;
                             }
@@ -448,16 +745,19 @@ public class AnnualEventsController3000 : MonoBehaviour
                             int startYear, endYear;
                             int startMonth, startDay, endMonth, endDay;
                             
-                            if (overrideMode == OverrideMode.ForceEvent)
+                            if (mode == OverrideMode.ForceEvent)
                             {
                                 if (isEventActive)
                                 {
-                                    DateTime now = DateTime.UtcNow;
-                                    startYear = now.Year;
-                                    startMonth = now.Month;
-                                    startDay = now.Day;
+                                    DateTime today = currentDateUtc.UtcDateTime;
+                                    // From the server: start yesterday, because before the game server's clock arrives
+                                    // (login screen, first room join) the game reads time 8 hours behind UTC.
+                                    DateTime from = server ? today.AddDays(-1) : today;
+                                    startYear = from.Year;
+                                    startMonth = from.Month;
+                                    startDay = from.Day;
                                     
-                                    DateTime endDateCalc = now.AddDays(2);
+                                    DateTime endDateCalc = today.AddDays(2);
                                     endYear = endDateCalc.Year;
                                     endMonth = endDateCalc.Month;
                                     endDay = endDateCalc.Day;
@@ -472,7 +772,7 @@ public class AnnualEventsController3000 : MonoBehaviour
                                     endDay = 1;
                                 }
                             }
-                            else if (overrideMode == OverrideMode.ForceRegular)
+                            else if (mode == OverrideMode.ForceRegular)
                             {
                                 startYear = 2024;
                                 startMonth = 1;
@@ -481,7 +781,7 @@ public class AnnualEventsController3000 : MonoBehaviour
                                 endMonth = 2;
                                 endDay = 1;
                             }
-                            else if (eventInfo.excludeFromDateSystem)
+                            else if (excluded)
                             {
                                 startYear = 2024;
                                 startMonth = 1;
@@ -493,11 +793,11 @@ public class AnnualEventsController3000 : MonoBehaviour
                             else
                             {
                                 startYear = currentYear;
-                                endYear = (eventInfo.endMonth < eventInfo.startMonth) ? currentYear + 1 : currentYear;
-                                startMonth = eventInfo.startMonth;
-                                startDay = eventInfo.startDay;
-                                endMonth = eventInfo.endMonth;
-                                endDay = eventInfo.endDay;
+                                endYear = (evEndMonth < evStartMonth) ? currentYear + 1 : currentYear;
+                                startMonth = evStartMonth;
+                                startDay = evStartDay;
+                                endMonth = evEndMonth;
+                                endDay = evEndDay;
                             }
 
                             SetFieldOrPropertyValue(startDate, "day", startDay);
@@ -520,13 +820,13 @@ public class AnnualEventsController3000 : MonoBehaviour
                             bool scheduleActive = currentDateUtc >= startDateTime && currentDateUtc < endDateTime;
 
                             bool isActive;
-                            if (overrideMode == OverrideMode.ForceRegular)
+                            if (mode == OverrideMode.ForceRegular)
                             {
                                 isActive = false;
                             }
-                            else if (overrideMode == OverrideMode.ForceEvent)
+                            else if (mode == OverrideMode.ForceEvent)
                             {
-                                isActive = (BuildEventKey(eventInfo) == forcedEventKey);
+                                isActive = (BuildEventKey(eventInfo) == forced);
                             }
                             else
                             {
