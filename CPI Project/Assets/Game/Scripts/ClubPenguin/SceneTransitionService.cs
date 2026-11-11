@@ -452,6 +452,7 @@ namespace ClubPenguin
 				yield return loadPrerequisiteContent(sceneDefinition);
 			}
 			yield return loadTargetScene(sceneName, additiveScenes, LoadingMode, allowActivation);
+			Physics.SyncTransforms();
 			IsTransitioning = false;
 			dispatcher.DispatchEvent(new SceneTransitionEvents.SetIsTransitioningFlag(false));
 			dispatcher.DispatchEvent(new SceneTransitionEvents.TransitionComplete(sceneName));
