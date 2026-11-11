@@ -15415,6 +15415,7 @@ GameObject:
   - component: {fileID: 114407257069263537}
   - component: {fileID: 114704223735738056}
   - component: {fileID: 95650517404719250}
+  - component: {fileID: 114923587308462100}
   m_Layer: 5
   m_Name: RewardImage
   m_TagString: Untagged
@@ -15533,6 +15534,20 @@ Animator:
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorStateOnDisable: 0
   m_WriteDefaultValuesOnDisable: 0
+--- !u!114 &114923587308462100
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1956256911395153}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 87c5d4a1f4f8870ce25d22d1e59c8868, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Audio::ClubPenguin.Audio.AnimToFabricEvents
+  Mute: 0
+  OverrideSoundSource: {fileID: 0}
 --- !u!1 &1960919394820040
 GameObject:
   m_ObjectHideFlags: 0

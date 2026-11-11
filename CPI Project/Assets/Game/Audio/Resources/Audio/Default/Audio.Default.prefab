@@ -41767,7 +41767,7 @@ MonoBehaviour:
   _dynamicAudioClipUnloadDelay: 0
   _dynamicAsyncAudioClipLoading: 0
   _audioClipAssetPath: 0
-  _delay: 1.2000000476837158
+  _delay: 0
   _delayInBeats: 0
   _loop: 0
   _ignoreNativeLoop: 0
