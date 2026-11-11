@@ -368,6 +368,7 @@ public class CreateAssetBundles : MonoBehaviour
     private static void GenerateManifest()
     {
         List<ClientManifest> clientManifestDirectory = new List<ClientManifest>();
+        string clientVersion = PlayerSettings.bundleVersion;
         if (File.Exists("Export/ClientManifestDirectory.json"))
         {
             File.Delete("Export/ClientManifestDirectory.json");
@@ -385,12 +386,18 @@ public class CreateAssetBundles : MonoBehaviour
             string platform = target.ToString().ToLowerInvariant();
             string urlPlatform = GetPlatformName(target);
             string url = string.Format("ClientBundles/{0}/{1}.unity3d", urlPlatform, cmanifestName);
-            clientManifestDirectory.Add(new ClientManifest("1.13.0", platform, "production", "Client 1.13.0_2018_11_05", false, url, "", generateHexString(), "Client 1.13.0", "2025-4-7 00:00:00 -08:00"));
+            clientManifestDirectory.Add(new ClientManifest(clientVersion, platform, "production", "Client " + clientVersion, false, url, "", generateHexString(), "Client " + clientVersion, DateTime.UtcNow.ToString("yyyy-M-d HH:mm:ss") + " +00:00"));
         }
 
         string clientManifestJson = LitJsonMapper.ToJson(new ClientManifestDirectory(clientManifestDirectory));
         Directory.CreateDirectory("Export");
         File.WriteAllText("Export/ClientManifestDirectory.json", clientManifestJson + Environment.NewLine);
+    }
+
+    [MenuItem("Project/AssetBundles/Generated/Generate CDN AssetBundles/Set CDN Root URL...")]
+    private static void SetCdnRoot()
+    {
+        ScriptableWizard.DisplayWizard<CdnRootWizard>("CDN Root URL", "Save");
     }
 
     [MenuItem("Project/AssetBundles/Generated/Generate CDN AssetBundles/Step 3: Generate __manifest cpremix prod")]
@@ -402,8 +409,9 @@ public class CreateAssetBundles : MonoBehaviour
         Todaysdate2 = UnixTimeNow();
         clientManifestDirectory.version = "test-" + todaysDate;
         clientManifestDirectory.unique = todaysDate;
-        clientManifestDirectory.cdnRoot = "http://localhost/";
-        clientManifestDirectory.url = "http://localhost/manifests/__manifest_cpremix_prod.0000.json";
+        string cdnRoot = CdnRootSettings.Get();
+        clientManifestDirectory.cdnRoot = cdnRoot;
+        clientManifestDirectory.url = cdnRoot + "manifests/__manifest_cpremix_prod.0000.json";
         clientManifestDirectory.paths = new Dictionary<string, ClientPaths>();
 
         string directoryPath = "Export";
@@ -487,5 +495,46 @@ public sealed class CdnAddressableBundleBuilder : BuildScriptPackedMode
             }
         }
         return base.ConstructAssetBundleName(assetGroup, schema, info, assetBundleName);
+    }
+}
+
+public static class CdnRootSettings
+{
+    private const string PrefKey = "CPI.CdnRoot";
+    public const string DefaultRoot = "http://localhost/";
+
+    public static string Normalize(string root)
+    {
+        if (string.IsNullOrWhiteSpace(root))
+        {
+            return DefaultRoot;
+        }
+        root = root.Trim();
+        return root.EndsWith("/") ? root : root + "/";
+    }
+
+    public static string Get()
+    {
+        return Normalize(EditorPrefs.GetString(PrefKey, DefaultRoot));
+    }
+
+    public static void Set(string root)
+    {
+        EditorPrefs.SetString(PrefKey, Normalize(root));
+    }
+}
+
+public sealed class CdnRootWizard : ScriptableWizard
+{
+    public string cdnRoot;
+
+    private void OnEnable()
+    {
+        cdnRoot = CdnRootSettings.Get();
+    }
+
+    private void OnWizardCreate()
+    {
+        CdnRootSettings.Set(cdnRoot);
     }
 }
