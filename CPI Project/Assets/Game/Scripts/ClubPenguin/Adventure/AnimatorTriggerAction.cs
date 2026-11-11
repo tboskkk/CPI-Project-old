@@ -29,14 +29,26 @@ namespace ClubPenguin.Adventure
 			}
 		}
 
-		public override void OnEnter()
-		{
-			InitializeComponents();
-			if (anim != null)
-			{
-				anim.SetTrigger(Parameter.Value);
-			}
-			Finish();
-		}
-	}
+        public override void OnEnter()
+        {
+            InitializeComponents();
+            if (anim != null && !isRepeatDoorRequest())
+            {
+                anim.SetTrigger(Parameter.Value);
+            }
+            Finish();
+        }
+
+        private bool isRepeatDoorRequest()
+        {
+            if (anim.runtimeAnimatorController == null || !anim.runtimeAnimatorController.name.Contains("DoorDoubleHinged"))
+            {
+                return false;
+            }
+            AnimatorStateInfo state = anim.IsInTransition(0) ? anim.GetNextAnimatorStateInfo(0) : anim.GetCurrentAnimatorStateInfo(0);
+            if (Parameter.Value == "Opening") return state.IsName("Opening") || state.IsName("Opened");
+            if (Parameter.Value == "Closing") return state.IsName("Closing") || state.IsName("Closed");
+            return false;
+        }
+    }
 }
