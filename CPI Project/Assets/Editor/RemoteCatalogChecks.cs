@@ -26,6 +26,7 @@ public static class RemoteCatalogChecks
         {
             Redirect();
             BuildConfiguration();
+            ClientInfoStamp();
         }
         catch (Exception e)
         {
@@ -34,6 +35,18 @@ public static class RemoteCatalogChecks
         }
         Debug.Log("CHECKS DONE failures=" + failures);
         EditorApplication.Exit(failures == 0 ? 0 : 1);
+    }
+
+    private static void ClientInfoStamp()
+    {
+        ClientInfo info = ScriptableObject.CreateInstance<ClientInfo>();
+        info.ClientVersion = "1.15.0";
+        info.BuildVersion = "1.15.0";
+        info.Platform = "standalonewindows64";
+        GenerateAddressables.StampClientInfo(new SerializedObject(info), "standalonelinux64", "1.17.0");
+        Check(info.ClientVersion == "1.17.0" && info.BuildVersion == "1.17.0", "client info version follows the project's bundle version");
+        Check(info.Platform == "standalonelinux64", "client info platform is set");
+        UnityEngine.Object.DestroyImmediate(info);
     }
 
     private static void Redirect()

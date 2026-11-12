@@ -252,12 +252,23 @@ public static class GenerateAddressables
         }
 
         SerializedObject serializedObject = new SerializedObject(clientInfo);
+        StampClientInfo(serializedObject, platform, PlayerSettings.bundleVersion);
+    }
+
+    // The committed asset's version goes stale between releases, but the CDN directory row, the catalog file name and the
+    // content archive are all keyed by the project's bundle version, so a build must report that one.
+    internal static void StampClientInfo(SerializedObject serializedObject, string platform, string version)
+    {
         SerializedProperty platformProperty = serializedObject.FindProperty("Platform");
-        if (platformProperty == null)
+        SerializedProperty clientVersionProperty = serializedObject.FindProperty("ClientVersion");
+        SerializedProperty buildVersionProperty = serializedObject.FindProperty("BuildVersion");
+        if (platformProperty == null || clientVersionProperty == null || buildVersionProperty == null)
         {
-            throw new InvalidOperationException("Client info asset does not contain the Platform property.");
+            throw new InvalidOperationException("Client info asset does not contain the Platform, ClientVersion and BuildVersion properties.");
         }
         platformProperty.stringValue = platform;
+        clientVersionProperty.stringValue = version;
+        buildVersionProperty.stringValue = version;
         serializedObject.ApplyModifiedProperties();
     }
 
