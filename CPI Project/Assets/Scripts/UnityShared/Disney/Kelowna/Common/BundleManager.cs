@@ -31,6 +31,15 @@ namespace Disney.Kelowna.Common
 
 		public int MonitorFrameFrequency = 50;
 
+		// Diagnostics for quest content (keys are lower case): when quest and dialog assets are loaded and released.
+		private static void questDiag(string what, string assetKey, string extra = "")
+		{
+			if (assetKey != null && (assetKey.IndexOf("quest", StringComparison.OrdinalIgnoreCase) >= 0 || assetKey.IndexOf("dialog", StringComparison.OrdinalIgnoreCase) >= 0))
+			{
+				UnityEngine.Debug.Log("[CONTENTDIAG] " + what + " " + assetKey + " frame=" + Time.frameCount + " " + extra);
+			}
+		}
+
 		public BundleManager(ContentManifest manifest)
 		{
 			if (manifest == null)
@@ -70,6 +79,7 @@ namespace Disney.Kelowna.Common
 				return cachedAddressable.Handle.Convert<TAsset>();
 			}
 			AsyncOperationHandle<TAsset> handle = Addressables.LoadAssetAsync<TAsset>(address);
+			questDiag("load", assetKey, "address=" + address);
 			addressableAssets.Add(assetKey, new CachedAddressable(handle, bundleKey));
 			return handle;
 		}
@@ -145,6 +155,7 @@ namespace Disney.Kelowna.Common
 			CachedAddressable cachedAddressable;
 			if (addressableAssets.TryGetValue(assetKey, out cachedAddressable))
 			{
+				questDiag("RELEASE", assetKey, "valid=" + cachedAddressable.Handle.IsValid());
 				if (cachedAddressable.Handle.IsValid())
 				{
 					Addressables.Release(cachedAddressable.Handle);
