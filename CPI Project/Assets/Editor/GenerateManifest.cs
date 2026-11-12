@@ -227,18 +227,13 @@ public class GenerateManifest
                         }
 
                         string assetPath = entryAssetPath.Replace("\\", "/");
-                        string assetPart = GetAssetPart(assetPath);
-
-                        string extForX = Path.GetExtension(assetPath).TrimStart('.').ToLowerInvariant();
-                        string pFolder = assetPath.Substring("Assets/".Length).ToLowerInvariant()
-                            .Replace("/" + assetPart + "." + extForX, "");
                         string bundlePathForManifest = GetLegacyBundlePath(entry, platformFolder);
                         if (string.IsNullOrEmpty(bundlePathForManifest))
                         {
                             bundlePathForManifest = groupBundlePath;
                         }
                         bundlePaths.Add(bundlePathForManifest);
-                        string assetLine = $"asset:{assetPart}?dl=bundle:sa-bundle&x={extForX}&b={bundlePathForManifest}&p={pFolder}";
+                        string assetLine = BuildBundleAssetLine(assetPath, bundlePathForManifest);
                         groupAssetCount++;
 
                         if (writtenLines.Add(assetLine))
@@ -291,6 +286,17 @@ public class GenerateManifest
             EditorUtility.ClearProgressBar();
             Debug.LogError("Error generating manifest file: " + e.Message);
         }
+    }
+
+    // The manifest line for an Addressables asset: its key, extension, bundle and path prefix (the address is the lowercased asset path).
+    internal static string BuildBundleAssetLine(string assetPath, string bundleKey)
+    {
+        assetPath = assetPath.Replace("\\", "/");
+        string assetPart = GetAssetPart(assetPath);
+        string extForX = Path.GetExtension(assetPath).TrimStart('.').ToLowerInvariant();
+        string pFolder = assetPath.Substring("Assets/".Length).ToLowerInvariant()
+            .Replace("/" + assetPart + "." + extForX, "");
+        return $"asset:{assetPart}?dl=bundle:sa-bundle&x={extForX}&b={bundleKey}&p={pFolder}";
     }
 
     private static string GetAssetPart(string assetPath)

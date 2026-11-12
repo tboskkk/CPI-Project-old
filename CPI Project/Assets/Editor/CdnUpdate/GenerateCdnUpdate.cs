@@ -7,6 +7,7 @@ using UnityEditor;
 using UnityEditor.AddressableAssets;
 using UnityEditor.AddressableAssets.Build;
 using UnityEditor.AddressableAssets.Settings;
+using UnityEditor.AddressableAssets.Settings.GroupSchemas;
 using UnityEngine;
 
 // Builds a CDN content update (replaced and added assets) against the state a shipped client was built with, and
@@ -46,22 +47,55 @@ public static class GenerateCdnUpdate
 		}
 
 		List<AddressableAssetEntry> modified = ModifiedEntryGatherer.Gather(settings, statePath);
-		if (modified == null || modified.Count == 0)
+		List<string> newAssetPaths = ManifestDelta.NewAssetPaths(settings, statePath);
+		if (modified.Count == 0 && newAssetPaths.Count == 0)
 		{
 			Debug.Log("GenerateCdnUpdate: no asset changed since the content state was saved; nothing to build");
 			return null;
 		}
-		List<string> guids = modified.Select(entry => entry.guid).ToList();
-		ContentUpdateScript.CreateContentUpdateGroup(settings, modified, "Content Update " + DateTime.UtcNow.ToString("yyyyMMddHHmmss"));
+		string groupName = "Content Update " + DateTime.UtcNow.ToString("yyyyMMddHHmmss");
+		List<string> modifiedGuids = modified.Select(entry => entry.guid).ToList();
+		AddressableAssetGroup updateGroup;
+		if (modified.Count > 0)
+		{
+			ContentUpdateScript.CreateContentUpdateGroup(settings, modified, groupName);
+			updateGroup = settings.FindGroup(groupName);
+		}
+		else
+		{
+			updateGroup = settings.CreateGroup(groupName, false, false, true, null, typeof(BundledAssetGroupSchema), typeof(ContentUpdateGroupSchema));
+			BundledAssetGroupSchema bundled = updateGroup.GetSchema<BundledAssetGroupSchema>();
+			bundled.BuildPath.SetVariableByName(settings, AddressableAssetSettings.kRemoteBuildPath);
+			bundled.LoadPath.SetVariableByName(settings, AddressableAssetSettings.kRemoteLoadPath);
+			bundled.UseAssetBundleCrc = false;
+			bundled.UseAssetBundleCrcForCachedBundles = false;
+			updateGroup.GetSchema<ContentUpdateGroupSchema>().StaticContent = false;
+		}
 		// The project's name builder names bundles from the legacy ".sa.unity3d.txt" label, which would give the update
 		// bundle its donor group's name and collide with it. The moved entries drop that label.
-		foreach (string guid in guids)
+		foreach (string guid in modifiedGuids)
 		{
 			AddressableAssetEntry moved = settings.FindAssetEntry(guid);
 			foreach (string label in new List<string>(moved.labels))
 			{
 				moved.SetLabel(label, false, false);
 			}
+		}
+		if (newAssetPaths.Count > 0)
+		{
+			// Assets added since the client shipped sit in static groups, which a content update doesn't build:
+			// they move to the update group, and their manifest entries go in as a delta the client merges.
+			foreach (string path in newAssetPaths)
+			{
+				AddressableAssetEntry added = settings.CreateOrMoveEntry(AssetDatabase.AssetPathToGUID(path), updateGroup, false, false);
+				added.address = path.ToLowerInvariant();
+				foreach (string label in new List<string>(added.labels))
+				{
+					added.SetLabel(label, false, false);
+				}
+			}
+			ManifestDelta.AddToGroup(settings, updateGroup, ManifestDelta.BuildText(newAssetPaths, target));
+			Debug.Log("GenerateCdnUpdate: " + newAssetPaths.Count + " new asset(s) added with a manifest delta");
 		}
 
 		string outputFolder = Path.GetFullPath(Path.Combine(Application.dataPath, "..", "ServerData", target.ToString()));

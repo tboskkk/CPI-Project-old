@@ -5,6 +5,8 @@ using UnityEditor;
 using UnityEditor.AddressableAssets;
 using UnityEditor.AddressableAssets.Build;
 using UnityEditor.AddressableAssets.Settings;
+using UnityEditor.AddressableAssets.Settings.GroupSchemas;
+using Disney.Kelowna.Common;
 using UnityEngine;
 
 // Headless checks for the CDN update tooling:
@@ -32,6 +34,7 @@ public static class CdnUpdateChecks
 			Archive();
 			Gather();
 			Update();
+			Delta();
 		}
 		catch (Exception e)
 		{
@@ -100,6 +103,52 @@ public static class CdnUpdateChecks
 		}
 		string nothing = GenerateCdnUpdate.BuildUpdate(version, EditorUserBuildSettings.activeBuildTarget, state, Path.Combine(Path.GetTempPath(), "cdn-nothing.zip"));
 		Check(nothing == null && !File.Exists(Path.Combine(Path.GetTempPath(), "cdn-nothing.zip")), "with no asset changed since the state was saved, there is nothing to build and no zip");
+	}
+
+	private static void Delta()
+	{
+		string text = ManifestDelta.BuildText(new[] { "Assets/Modules/Foo/AssetBundles/Bar/Baz.png", "Assets/Modules/Foo/AssetBundles/Bar/Baz.png", "Assets/Game/AssetBundles/Hello/World.prefab" }, BuildTarget.StandaloneLinux64);
+		ContentManifest parsed = new ContentManifest(new StringReader(text));
+		Check(parsed.AssetEntryMap.Count == 2, "the client's manifest parser reads both delta entries (duplicates collapse): " + parsed.AssetEntryMap.Count);
+		ContentManifest.AssetEntry baz = parsed.AssetEntryMap["bar/baz"];
+		Check(baz.AssetPath == "assets/modules/foo/assetbundles/bar/baz.png", "a delta entry's address (the client's AssetPath) is the lowercased asset path: " + baz.AssetPath);
+		Check(parsed.AssetEntryMap["hello/world"].AssetPath == "assets/game/assetbundles/hello/world.prefab" && parsed.AssetEntryMap["hello/world"].Extension == "prefab", "a second entry keeps its extension and path");
+		Check(baz.BundleKey == ManifestDelta.BundleKeyFor(BuildTarget.StandaloneLinux64) && parsed.BundleEntryMap.ContainsKey(baz.BundleKey), "entries name the delta bundle and the bundle line exists");
+		Check(ManifestDelta.BuildText(new string[0], BuildTarget.Android) == "", "no new assets gives an empty delta");
+
+		ContentManifest baseManifest = new ContentManifest(new StringReader("asset:bar/baz?dl=res&x=png\nasset:old/key?dl=res&x=png\n")) { ContentVersion = "v1", ContentManifestHash = "h1", BaseUri = "u1" };
+		ContentManifest merged = RemoteCatalogRedirect.MergeDelta(baseManifest, parsed);
+		Check(merged.AssetEntryMap.ContainsKey("old/key") && merged.AssetEntryMap.ContainsKey("hello/world"), "merge keeps the base's entries and adds the delta's");
+		Check(merged.AssetEntryMap["bar/baz"].BundleKey == baz.BundleKey, "a delta entry overrides a base entry with the same key");
+		Check(merged.ContentVersion == "v1" && merged.ContentManifestHash == "h1" && merged.BaseUri == "u1", "merge keeps the base's version, hash and base URI");
+		Check(RemoteCatalogRedirect.MergeDelta(baseManifest, null) == baseManifest, "no delta returns the manifest unchanged");
+
+		string state = Environment.GetEnvironmentVariable("CDN_TEST_STATE");
+		if (string.IsNullOrEmpty(state) || !File.Exists(state))
+		{
+			Debug.Log("CHECK SKIPPED: new-asset detection (set CDN_TEST_STATE)");
+			return;
+		}
+		AddressableAssetSettings settings = AddressableAssetSettingsDefaultObject.GetSettings(true);
+		Check(ManifestDelta.NewAssetPaths(settings, state).Count == 0, "nothing is new right after the build the state came from");
+		const string probe = "Assets/CdnUpdateCheck/AssetBundles/Probe/probe.txt";
+		try
+		{
+			Directory.CreateDirectory(Path.GetDirectoryName(probe));
+			File.WriteAllText(probe, "x");
+			AssetDatabase.ImportAsset(probe, ImportAssetOptions.ForceSynchronousImport);
+			settings.CreateOrMoveEntry(AssetDatabase.AssetPathToGUID(probe), settings.DefaultGroup, false, false);
+			var added = ManifestDelta.NewAssetPaths(settings, state);
+			Check(added.Count == 1 && added[0] == probe, "an addressable asset added since the build is found as new: " + string.Join(",", added));
+			var entry = ManifestDelta.AddToGroup(settings, settings.DefaultGroup, "asset:x?dl=res&x=png\n");
+			Check(entry.address == RemoteCatalogRedirect.ManifestDeltaAddress && File.Exists(ManifestDelta.AssetFolder + "/ContentManifestDelta.txt"), "the delta becomes an addressable text asset at the well-known address");
+			Check(!ManifestDelta.NewAssetPaths(settings, state).Contains(ManifestDelta.AssetFolder + "/ContentManifestDelta.txt"), "the delta asset itself is never reported as a new asset");
+		}
+		finally
+		{
+			AssetDatabase.DeleteAsset("Assets/CdnUpdateCheck");
+			AssetDatabase.DeleteAsset(ManifestDelta.AssetFolder);
+		}
 	}
 
 	private static void Gather()
