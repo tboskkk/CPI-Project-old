@@ -9375,6 +9375,7 @@
   "Igloos.MusicTrack.Shadow": "Shadow",
   "Igloos.MusicTrack.Elemental": "Elemental",
   "Igloos.MusicTrack.UniversityRally": "University Rally",
-  "GlobalUI.Settings.Presets.Header": "VOLUME PRESETS",
+  "GlobalUI.Settings.MusicPresets.Header": "MUSIC PRESETS",
+  "GlobalUI.Settings.SFXPresets.Header": "SFX PRESETS",
   "Settings.Sounds.MaxVolume": "Max"
 }

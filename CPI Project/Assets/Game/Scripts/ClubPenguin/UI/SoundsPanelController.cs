@@ -13,22 +13,33 @@ namespace ClubPenguin.UI
 
         public Slider SoundsVolumeSlider;
 
-        public Toggle ResetVolumeButton;
+        public Toggle MusicDefaultButton;
 
-        public Toggle MuteButton;
+        public Toggle MusicMuteButton;
 
-        [Header("Volume Buttons")]
-        public Toggle Volume1Button;
-        public Toggle Volume2Button;
-        public Toggle Volume3Button;
-        public Toggle VolumeMaxButton;
+        public Toggle SfxDefaultButton;
+
+        public Toggle SfxMuteButton;
+
+        [Header("Music Volume Buttons")]
+        public Toggle MusicVolume1Button;
+        public Toggle MusicVolume2Button;
+        public Toggle MusicVolume3Button;
+        public Toggle MusicVolumeMaxButton;
+
+        [Header("SFX Volume Buttons")]
+        public Toggle SfxVolume1Button;
+        public Toggle SfxVolume2Button;
+        public Toggle SfxVolume3Button;
+        public Toggle SfxVolumeMaxButton;
 
         private GameSettings gameSettings;
 
         private float previousMusicVolume = 2f;
         private float previousSfxVolume = 2f;
 
-        private bool isMuted;
+        private bool isMusicMuted;
+        private bool isSfxMuted;
 
         private void Start()
         {
@@ -40,12 +51,24 @@ namespace ClubPenguin.UI
             previousMusicVolume = MusicVolumeSlider.value;
             previousSfxVolume = SoundsVolumeSlider.value;
 
-            isMuted = false;
+            isMusicMuted = false;
+            isSfxMuted = false;
 
-            if (MuteButton != null)
+            if (MusicMuteButton != null)
             {
-                MuteButton.SetIsOnWithoutNotify(false);
+                MusicMuteButton.SetIsOnWithoutNotify(false);
             }
+
+            if (SfxMuteButton != null)
+            {
+                SfxMuteButton.SetIsOnWithoutNotify(false);
+            }
+
+            MusicVolumeSlider.SetValueWithoutNotify(previousMusicVolume);
+            SoundsVolumeSlider.SetValueWithoutNotify(previousSfxVolume);
+
+            Service.Get<AudioController>().SetMusicVolume(previousMusicVolume);
+            Service.Get<AudioController>().SetSFXVolume(previousSfxVolume);
         }
 
         private void OnEnable()
@@ -53,20 +76,34 @@ namespace ClubPenguin.UI
             MusicVolumeSlider.onValueChanged.AddListener(onMusicVolumeChanged);
             SoundsVolumeSlider.onValueChanged.AddListener(onSfxVolumeChanged);
 
-            if (ResetVolumeButton != null)
+            if (MusicDefaultButton != null)
             {
-                ResetVolumeButton.onValueChanged.AddListener(onResetVolumeButtonClicked);
+                MusicDefaultButton.onValueChanged.AddListener(onMusicDefaultButtonClicked);
             }
 
-            if (MuteButton != null)
+            if (MusicMuteButton != null)
             {
-                MuteButton.onValueChanged.AddListener(onMuteButtonClicked);
+                MusicMuteButton.onValueChanged.AddListener(onMusicMuteButtonClicked);
             }
 
-            if (Volume1Button != null) Volume1Button.onValueChanged.AddListener(onVolume1Toggled);
-            if (Volume2Button != null) Volume2Button.onValueChanged.AddListener(onVolume2Toggled);
-            if (Volume3Button != null) Volume3Button.onValueChanged.AddListener(onVolume3Toggled);
-            if (VolumeMaxButton != null) VolumeMaxButton.onValueChanged.AddListener(onVolumeMaxToggled);
+            if (SfxDefaultButton != null)
+            {
+                SfxDefaultButton.onValueChanged.AddListener(onSfxDefaultButtonClicked);
+            }
+
+            if (SfxMuteButton != null)
+            {
+                SfxMuteButton.onValueChanged.AddListener(onSfxMuteButtonClicked);
+            }
+
+            if (MusicVolume1Button != null) MusicVolume1Button.onValueChanged.AddListener(onMusicVolume1Toggled);
+            if (MusicVolume2Button != null) MusicVolume2Button.onValueChanged.AddListener(onMusicVolume2Toggled);
+            if (MusicVolume3Button != null) MusicVolume3Button.onValueChanged.AddListener(onMusicVolume3Toggled);
+            if (MusicVolumeMaxButton != null) MusicVolumeMaxButton.onValueChanged.AddListener(onMusicVolumeMaxToggled);
+            if (SfxVolume1Button != null) SfxVolume1Button.onValueChanged.AddListener(onSfxVolume1Toggled);
+            if (SfxVolume2Button != null) SfxVolume2Button.onValueChanged.AddListener(onSfxVolume2Toggled);
+            if (SfxVolume3Button != null) SfxVolume3Button.onValueChanged.AddListener(onSfxVolume3Toggled);
+            if (SfxVolumeMaxButton != null) SfxVolumeMaxButton.onValueChanged.AddListener(onSfxVolumeMaxToggled);
         }
 
         private void OnDisable()
@@ -74,27 +111,41 @@ namespace ClubPenguin.UI
             MusicVolumeSlider.onValueChanged.RemoveListener(onMusicVolumeChanged);
             SoundsVolumeSlider.onValueChanged.RemoveListener(onSfxVolumeChanged);
 
-            if (ResetVolumeButton != null)
+            if (MusicDefaultButton != null)
             {
-                ResetVolumeButton.onValueChanged.RemoveListener(onResetVolumeButtonClicked);
+                MusicDefaultButton.onValueChanged.RemoveListener(onMusicDefaultButtonClicked);
             }
 
-            if (MuteButton != null)
+            if (MusicMuteButton != null)
             {
-                MuteButton.onValueChanged.RemoveListener(onMuteButtonClicked);
+                MusicMuteButton.onValueChanged.RemoveListener(onMusicMuteButtonClicked);
             }
 
-            if (Volume1Button != null) Volume1Button.onValueChanged.RemoveListener(onVolume1Toggled);
-            if (Volume2Button != null) Volume2Button.onValueChanged.RemoveListener(onVolume2Toggled);
-            if (Volume3Button != null) Volume3Button.onValueChanged.RemoveListener(onVolume3Toggled);
-            if (VolumeMaxButton != null) VolumeMaxButton.onValueChanged.RemoveListener(onVolumeMaxToggled);
+            if (SfxDefaultButton != null)
+            {
+                SfxDefaultButton.onValueChanged.RemoveListener(onSfxDefaultButtonClicked);
+            }
+
+            if (SfxMuteButton != null)
+            {
+                SfxMuteButton.onValueChanged.RemoveListener(onSfxMuteButtonClicked);
+            }
+
+            if (MusicVolume1Button != null) MusicVolume1Button.onValueChanged.RemoveListener(onMusicVolume1Toggled);
+            if (MusicVolume2Button != null) MusicVolume2Button.onValueChanged.RemoveListener(onMusicVolume2Toggled);
+            if (MusicVolume3Button != null) MusicVolume3Button.onValueChanged.RemoveListener(onMusicVolume3Toggled);
+            if (MusicVolumeMaxButton != null) MusicVolumeMaxButton.onValueChanged.RemoveListener(onMusicVolumeMaxToggled);
+            if (SfxVolume1Button != null) SfxVolume1Button.onValueChanged.RemoveListener(onSfxVolume1Toggled);
+            if (SfxVolume2Button != null) SfxVolume2Button.onValueChanged.RemoveListener(onSfxVolume2Toggled);
+            if (SfxVolume3Button != null) SfxVolume3Button.onValueChanged.RemoveListener(onSfxVolume3Toggled);
+            if (SfxVolumeMaxButton != null) SfxVolumeMaxButton.onValueChanged.RemoveListener(onSfxVolumeMaxToggled);
         }
 
         private void onMusicVolumeChanged(float value)
         {
             previousMusicVolume = value;
             gameSettings.MusicVolume.SetValue(value);
-            if (!isMuted)
+            if (!isMusicMuted)
             {
                 Service.Get<AudioController>().SetMusicVolume(value);
             }
@@ -104,7 +155,7 @@ namespace ClubPenguin.UI
         {
             previousSfxVolume = value;
             gameSettings.SfxVolume.SetValue(value);
-            if (!isMuted)
+            if (!isSfxMuted)
             {
                 Service.Get<AudioController>().SetSFXVolume(value);
             }
@@ -120,28 +171,44 @@ namespace ClubPenguin.UI
             SoundsVolumeSlider.value = Mathf.Clamp(value, SoundsVolumeSlider.minValue, SoundsVolumeSlider.maxValue);
         }
 
-        private void setVolume(float value)
+        private void setMusicVolumePreset(float value)
         {
-            unmuteForVolumePreset();
+            unmuteMusicForVolumePreset();
             SetMusicVolume(value);
+            clearMusicVolumeToggles();
+        }
+
+        private void setSfxVolumePreset(float value)
+        {
+            unmuteSfxForVolumePreset();
             SetSfxVolume(value);
-            clearVolumePresetToggles();
+            clearSfxVolumeToggles();
         }
 
-        private void setVolumeToMax()
+        private void setMusicVolumeToMax()
         {
-            unmuteForVolumePreset();
-            SetMusicVolume(MusicVolumeSlider.maxValue);
-            SetSfxVolume(SoundsVolumeSlider.maxValue);
-            clearVolumePresetToggles();
+            setMusicVolumePreset(MusicVolumeSlider.maxValue);
         }
 
-        private void clearVolumePresetToggles()
+        private void setSfxVolumeToMax()
         {
-            resetVolumePresetToggle(Volume1Button);
-            resetVolumePresetToggle(Volume2Button);
-            resetVolumePresetToggle(Volume3Button);
-            resetVolumePresetToggle(VolumeMaxButton);
+            setSfxVolumePreset(SoundsVolumeSlider.maxValue);
+        }
+
+        private void clearMusicVolumeToggles()
+        {
+            resetVolumePresetToggle(MusicVolume1Button);
+            resetVolumePresetToggle(MusicVolume2Button);
+            resetVolumePresetToggle(MusicVolume3Button);
+            resetVolumePresetToggle(MusicVolumeMaxButton);
+        }
+
+        private void clearSfxVolumeToggles()
+        {
+            resetVolumePresetToggle(SfxVolume1Button);
+            resetVolumePresetToggle(SfxVolume2Button);
+            resetVolumePresetToggle(SfxVolume3Button);
+            resetVolumePresetToggle(SfxVolumeMaxButton);
         }
 
         private void resetVolumePresetToggle(Toggle toggle)
@@ -193,94 +260,166 @@ namespace ClubPenguin.UI
             animator.SetTrigger(triggers.normalTrigger);
         }
 
-        private void unmuteForVolumePreset()
+        private void unmuteMusicForVolumePreset()
         {
-            if (!isMuted)
+            if (!isMusicMuted)
             {
                 return;
             }
 
-            isMuted = false;
-            if (MuteButton != null)
+            isMusicMuted = false;
+            if (MusicMuteButton != null)
             {
-                MuteButton.SetIsOnWithoutNotify(false);
+                MusicMuteButton.SetIsOnWithoutNotify(false);
             }
+
+            MusicVolumeSlider.SetValueWithoutNotify(previousMusicVolume);
+            Service.Get<AudioController>().SetMusicVolume(previousMusicVolume);
         }
 
-        private void onVolume1Toggled(bool isOn)
+        private void unmuteSfxForVolumePreset()
         {
-            setVolume(1f);
+            if (!isSfxMuted)
+            {
+                return;
+            }
+
+            isSfxMuted = false;
+            if (SfxMuteButton != null)
+            {
+                SfxMuteButton.SetIsOnWithoutNotify(false);
+            }
+
+            SoundsVolumeSlider.SetValueWithoutNotify(previousSfxVolume);
+            Service.Get<AudioController>().SetSFXVolume(previousSfxVolume);
         }
 
-        private void onVolume2Toggled(bool isOn)
+        private void onMusicVolume1Toggled(bool isOn)
         {
-            setVolume(2f);
+            setMusicVolumePreset(1f);
         }
 
-        private void onVolume3Toggled(bool isOn)
+        private void onMusicVolume2Toggled(bool isOn)
         {
-            setVolume(3f);
+            setMusicVolumePreset(2f);
         }
 
-        private void onVolumeMaxToggled(bool isOn)
+        private void onMusicVolume3Toggled(bool isOn)
         {
-            setVolumeToMax();
+            setMusicVolumePreset(3f);
         }
 
-        private void onResetVolumeButtonClicked(bool value)
+        private void onMusicVolumeMaxToggled(bool isOn)
+        {
+            setMusicVolumeToMax();
+        }
+
+        private void onSfxVolume1Toggled(bool isOn)
+        {
+            setSfxVolumePreset(1f);
+        }
+
+        private void onSfxVolume2Toggled(bool isOn)
+        {
+            setSfxVolumePreset(2f);
+        }
+
+        private void onSfxVolume3Toggled(bool isOn)
+        {
+            setSfxVolumePreset(3f);
+        }
+
+        private void onSfxVolumeMaxToggled(bool isOn)
+        {
+            setSfxVolumeToMax();
+        }
+
+        private void onMusicDefaultButtonClicked(bool value)
         {
             const float defaultVolume = 2f;
 
             previousMusicVolume = defaultVolume;
-            previousSfxVolume = defaultVolume;
 
-            if (isMuted)
+            if (isMusicMuted)
             {
-                isMuted = false;
+                isMusicMuted = false;
 
-                if (MuteButton != null)
+                if (MusicMuteButton != null)
                 {
-                    MuteButton.SetIsOnWithoutNotify(false);
+                    MusicMuteButton.SetIsOnWithoutNotify(false);
                 }
             }
 
             MusicVolumeSlider.value = defaultVolume;
-            SoundsVolumeSlider.value = defaultVolume;
 
             Service.Get<AudioController>().SetMusicVolume(defaultVolume);
-            Service.Get<AudioController>().SetSFXVolume(defaultVolume);
 
             gameSettings.MusicVolume.SetValue(defaultVolume);
-            gameSettings.SfxVolume.SetValue(defaultVolume);
 
-            resetVolumePresetToggle(ResetVolumeButton);
+            resetVolumePresetToggle(MusicDefaultButton);
         }
 
-        private void onMuteButtonClicked(bool value)
+        private void onSfxDefaultButtonClicked(bool value)
         {
-            isMuted = value;
+            const float defaultVolume = 2f;
 
-            if (isMuted)
+            previousSfxVolume = defaultVolume;
+
+            if (isSfxMuted)
+            {
+                isSfxMuted = false;
+
+                if (SfxMuteButton != null)
+                {
+                    SfxMuteButton.SetIsOnWithoutNotify(false);
+                }
+            }
+
+            SoundsVolumeSlider.value = defaultVolume;
+
+            Service.Get<AudioController>().SetSFXVolume(defaultVolume);
+
+            gameSettings.SfxVolume.SetValue(defaultVolume);
+
+            resetVolumePresetToggle(SfxDefaultButton);
+        }
+
+        private void onMusicMuteButtonClicked(bool value)
+        {
+            isMusicMuted = value;
+
+            if (isMusicMuted)
             {
                 previousMusicVolume = MusicVolumeSlider.value;
-                previousSfxVolume = SoundsVolumeSlider.value;
-
                 MusicVolumeSlider.SetValueWithoutNotify(0f);
-                SoundsVolumeSlider.SetValueWithoutNotify(0f);
-
                 Service.Get<AudioController>().SetMusicVolume(0f);
-                Service.Get<AudioController>().SetSFXVolume(0f);
             }
             else
             {
                 MusicVolumeSlider.SetValueWithoutNotify(previousMusicVolume);
-                SoundsVolumeSlider.SetValueWithoutNotify(previousSfxVolume);
-
                 Service.Get<AudioController>().SetMusicVolume(previousMusicVolume);
+            }
+
+            StartCoroutine(resetToggleAnimation(MusicMuteButton));
+        }
+
+        private void onSfxMuteButtonClicked(bool value)
+        {
+            isSfxMuted = value;
+
+            if (isSfxMuted)
+            {
+                previousSfxVolume = SoundsVolumeSlider.value;
+                SoundsVolumeSlider.SetValueWithoutNotify(0f);
+                Service.Get<AudioController>().SetSFXVolume(0f);
+            }
+            else
+            {
+                SoundsVolumeSlider.SetValueWithoutNotify(previousSfxVolume);
                 Service.Get<AudioController>().SetSFXVolume(previousSfxVolume);
             }
 
-            StartCoroutine(resetToggleAnimation(MuteButton));
+            StartCoroutine(resetToggleAnimation(SfxMuteButton));
         }
     }
 }
