@@ -318,7 +318,6 @@ public class AnnualEventsController3000 : MonoBehaviour
             }
             if (failure != null && failure != lastFetchFailure)
             {
-                Debug.Log("[PartySchedule] fetch failed (" + failure + "), using " + (serverSchedule != null ? "the cached schedule" : "the built-in calendar"));
             }
             lastFetchFailure = failure;
         }
@@ -635,7 +634,6 @@ public class AnnualEventsController3000 : MonoBehaviour
         if (applied != lastApplied)
         {
             lastApplied = applied;
-            Debug.Log("[PartySchedule] apply: source=" + applied + " now=" + currentDateUtc.ToString("u"));
         }
 
         if (!server && mode == OverrideMode.ForceEvent && string.IsNullOrEmpty(forced) && events != null && events.Length > 0)
