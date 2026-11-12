@@ -91,6 +91,7 @@ namespace ClubPenguin.Adventure
 				entry = ((!RandomDialog) ? DialogList.Entries[DialogListItemIndex] : DialogList.Entries[Random.Range(0, DialogList.Entries.Length)]);
 				dCinematicSpeech.Text = Service.Get<Localizer>().GetTokenTranslation(entry.ContentToken);
 			}
+			UnityEngine.Debug.Log("[QUESTDIAG] custom dialog fsm=" + base.Fsm.Name + " state=" + base.State.Name + " useDialogList=" + UseDialogList + " dialogListNull=" + (DialogList == null) + " token=" + (UseDialogList ? entry.ContentToken : i18nContents) + " textLength=" + (dCinematicSpeech.Text == null ? -1 : dCinematicSpeech.Text.Length) + " localizerTokens=" + Service.Get<Localizer>().tokens.Count);
 			dCinematicSpeech.BubbleContentKey = DialogPrefabKey;
 			dCinematicSpeech.Buttons = null;
 			dCinematicSpeech.BackgroundImageKey = BackgroundImageKey;

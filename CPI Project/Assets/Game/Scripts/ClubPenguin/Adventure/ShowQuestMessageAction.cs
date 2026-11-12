@@ -66,6 +66,7 @@ namespace ClubPenguin.Adventure
 				entry = ((!RandomDialog) ? DialogList.Entries[DialogListItemIndex] : DialogList.Entries[Random.Range(0, DialogList.Entries.Length)]);
 				dQuestMessage.Text = Service.Get<Localizer>().GetTokenTranslation(entry.ContentToken);
 			}
+			UnityEngine.Debug.Log("[QUESTDIAG] quest message fsm=" + base.Fsm.Name + " state=" + base.State.Name + " useDialogList=" + UseDialogList + " dialogListNull=" + (DialogList == null) + " token=" + (UseDialogList ? entry.ContentToken : i18nContents) + " textLength=" + (dQuestMessage.Text == null ? -1 : dQuestMessage.Text.Length) + " localizerTokens=" + Service.Get<Localizer>().tokens.Count);
 			dQuestMessage.MascotName = MascotName;
 			dQuestMessage.DismissTime = ((AutoCloseTime > 0f) ? AutoCloseTime : ((float)DismissTime));
 			dQuestMessage.Buttons = null;
