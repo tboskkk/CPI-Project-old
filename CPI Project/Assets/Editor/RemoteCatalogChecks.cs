@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using Disney.Kelowna.Common;
 using UnityEditor;
 using UnityEditor.AddressableAssets;
@@ -28,6 +29,7 @@ public static class RemoteCatalogChecks
             BuildConfiguration();
             ClientInfoStamp();
             ManifestCompletesOnce();
+            StaleCatalogCache();
         }
         catch (Exception e)
         {
@@ -38,6 +40,32 @@ public static class RemoteCatalogChecks
         EditorApplication.Exit(failures == 0 ? 0 : 1);
     }
 
+    // Addressables loads a cached remote catalog at startup even when the remote host can't be reached, so a
+    // withdrawn release would outlive its row. Cached catalogs go unless the row names a release.
+    private static void StaleCatalogCache()
+    {
+        string dir = Path.Combine(Path.GetTempPath(), "catalog-cache-" + Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(dir);
+        try
+        {
+            string[] catalogs = { "catalog_1.17.0.bin", "catalog_1.17.0.hash", "catalog_1.16.1.1.json" };
+            foreach (string name in catalogs) File.WriteAllText(Path.Combine(dir, name), "x");
+            File.WriteAllText(Path.Combine(dir, "other.txt"), "keep");
+            RemoteCatalogRedirect.SetRelease("https://h.example/cdn.disney.io", "r1");
+            RemoteCatalogRedirect.ClearCachedCatalogs(dir);
+            Check(Array.TrueForAll(catalogs, name => File.Exists(Path.Combine(dir, name))), "a named release keeps the cached catalogs");
+            RemoteCatalogRedirect.SetRelease("https://h.example/cdn.disney.io", "embedded");
+            RemoteCatalogRedirect.ClearCachedCatalogs(dir);
+            Check(Array.TrueForAll(catalogs, name => !File.Exists(Path.Combine(dir, name))), "no release: every cached catalog (.bin, .hash, .json) is removed");
+            Check(File.Exists(Path.Combine(dir, "other.txt")), "no release: other files in the cache folder are left alone");
+            RemoteCatalogRedirect.ClearCachedCatalogs(Path.Combine(dir, "missing"));
+            Check(true, "a missing cache folder is not an error");
+        }
+        finally
+        {
+            Directory.Delete(dir, true);
+        }
+    }
     private static void ClientInfoStamp()
     {
         ClientInfo info = ScriptableObject.CreateInstance<ClientInfo>();

@@ -131,6 +131,8 @@ namespace Disney.Kelowna.Common.Manifest
             // A release id in the row's content (even with an empty url) points Addressables' remote catalog at the CDN.
             // Nothing has touched Addressables yet, so this is early enough.
             RemoteCatalogRedirect.SetRelease(RemoteCatalogRedirect.CdnRootFrom(manifestDirectoryUrl), contentDirectoryEntry.content);
+            // The row names no release: drop catalogs cached from an earlier one, or Addressables would keep using them.
+            RemoteCatalogRedirect.ClearCachedCatalogs();
             RemoteCatalogRedirect.Install();
             if (contentDirectoryEntry.IsEmbeddedContent())
             {
