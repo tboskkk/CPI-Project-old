@@ -145,20 +145,34 @@ namespace ClubPenguin.UI
         {
             previousMusicVolume = value;
             gameSettings.MusicVolume.SetValue(value);
-            if (!isMusicMuted)
+            if (isMusicMuted)
             {
-                Service.Get<AudioController>().SetMusicVolume(value);
+                isMusicMuted = false;
+                if (MusicMuteButton != null)
+                {
+                    MusicMuteButton.SetIsOnWithoutNotify(false);
+                    StartCoroutine(resetToggleAnimation(MusicMuteButton));
+                }
             }
+
+            Service.Get<AudioController>().SetMusicVolume(value);
         }
 
         private void onSfxVolumeChanged(float value)
         {
             previousSfxVolume = value;
             gameSettings.SfxVolume.SetValue(value);
-            if (!isSfxMuted)
+            if (isSfxMuted)
             {
-                Service.Get<AudioController>().SetSFXVolume(value);
+                isSfxMuted = false;
+                if (SfxMuteButton != null)
+                {
+                    SfxMuteButton.SetIsOnWithoutNotify(false);
+                    StartCoroutine(resetToggleAnimation(SfxMuteButton));
+                }
             }
+
+            Service.Get<AudioController>().SetSFXVolume(value);
         }
 
         public void SetMusicVolume(float value)
