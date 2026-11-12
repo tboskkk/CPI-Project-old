@@ -37,6 +37,8 @@ namespace Disney.Kelowna.Common.Manifest
 
         private ICoroutine timeoutCheck;
 
+        private string manifestDirectoryUrl;
+
         public InitializeManifestDefinitionCommand(IManifestService service, ManifestInitializationComplete callback)
         {
             manifestService = service;
@@ -113,6 +115,10 @@ namespace Disney.Kelowna.Common.Manifest
                     yield break;
                 }
             }
+            // A release id in the row's content (even with an empty url) points Addressables' remote catalog at the CDN.
+            // Nothing has touched Addressables yet, so this is early enough.
+            RemoteCatalogRedirect.SetRelease(RemoteCatalogRedirect.CdnRootFrom(manifestDirectoryUrl), contentDirectoryEntry.content);
+            RemoteCatalogRedirect.Install();
             if (contentDirectoryEntry.IsEmbeddedContent())
             {
                 contentManifest = embeddedManifest;
@@ -153,6 +159,7 @@ namespace Disney.Kelowna.Common.Manifest
             CPipeManifestResponse cpipeManifestResponse = new CPipeManifestResponse();
             yield return cpipeManifestService.LookupAssetUrl(cpipeManifestResponse, "ClientManifestDirectory.json");
             bool forceDownload = false;
+            manifestDirectoryUrl = cpipeManifestResponse.FullAssetUrl;
             Uri uri = new Uri(cpipeManifestResponse.FullAssetUrl);
             string manifestDirectory_cachedPath = PathUtil.Combine(Application.persistentDataPath, uri.LocalPath);
             if (!forceDownload && File.Exists(manifestDirectory_cachedPath))
