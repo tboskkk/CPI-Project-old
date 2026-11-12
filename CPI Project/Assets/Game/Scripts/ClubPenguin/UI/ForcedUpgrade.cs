@@ -10,6 +10,8 @@ namespace ClubPenguin.UI
 {
 	public static class ForcedUpgrade
 	{
+		private const string UPDATE_PAGE_URL = "https://github.com/wednesday2024/CPI-Project/releases";
+
 		private const string FORCED_UPGRADE_TITLE_TOKEN = "GlobalUI.ErrorMessages.UpgradeNeeded.Title";
 
 		private const string FORCED_UPGRADE_TOKEN = "GlobalUI.ErrorMessages.UpgradeNeeded";
@@ -55,8 +57,7 @@ namespace ClubPenguin.UI
 
 		private static void openAppUpdatePage()
 		{
-			IPlatformProcess platformProcess = PlatformProcessBuilder.BuildLauncherProcess();
-			platformProcess.Execute();
+			Application.OpenURL(UPDATE_PAGE_URL);
 			QuitHelper.Quit();
 		}
 
