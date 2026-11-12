@@ -18,15 +18,14 @@ public class CreateAssetBundles : MonoBehaviour
 {
     private const string CdnGroupPrefix = "CDN-";
     private const string CdnManifestGroupPrefix = "CDN-Manifest-";
-    private static readonly List<BuildTarget> targets = new List<BuildTarget>
+    private static List<BuildTarget> targets
     {
-        BuildTarget.Android,
-        BuildTarget.iOS,
-        BuildTarget.StandaloneWindows64,
-        BuildTarget.StandaloneOSX,
-        BuildTarget.StandaloneLinux64
-    };
+        get { return CdnTargetSettings.Get(); }
+    }
     private static readonly Dictionary<string, string> outputBundleNames = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+    // CRCs of the bundles Addressables built, by file name. The Addressables pipeline writes no .manifest
+    // files, so BuildPipeline.GetCRCForAssetBundle can't be used.
+    private static readonly Dictionary<string, uint> bundleCrcs = new Dictionary<string, uint>(StringComparer.OrdinalIgnoreCase);
 
     public static long Todaysdate1;
     public static long Todaysdate2;
@@ -165,7 +164,7 @@ public class CreateAssetBundles : MonoBehaviour
                     schema.LoadPath.SetVariableByName(settings, AddressableAssetSettings.kLocalLoadPath);
                     schema.BundleMode = BundledAssetGroupSchema.BundlePackingMode.PackTogether;
                     schema.Compression = BundledAssetGroupSchema.BundleCompressionMode.Uncompressed;
-                    schema.BundleNaming = BundledAssetGroupSchema.BundleNamingStyle.NoHash;
+                    schema.BundleNaming = BundledAssetGroupSchema.BundleNamingStyle.AppendHash;
                 }
             }
 
@@ -176,6 +175,10 @@ public class CreateAssetBundles : MonoBehaviour
             if (result == null || !string.IsNullOrEmpty(result.Error))
             {
                 throw new InvalidOperationException(result == null ? "Addressables returned no CDN build result." : result.Error);
+            }
+            foreach (AddressablesPlayerBuildResult.BundleBuildResult built in result.AssetBundleBuildResults)
+            {
+                bundleCrcs[Path.GetFileName(built.FilePath)] = built.Crc;
             }
             foreach (string file in Directory.GetFiles(outputDirectory, "*", SearchOption.AllDirectories))
             {
@@ -241,6 +244,10 @@ public class CreateAssetBundles : MonoBehaviour
                     string path = entry.AssetPath;
                     string[] assetFileName = path.ToLowerInvariant().Split('/');
                     int resourcesIndex = 0;
+                    bool markerFound = false;
+                    // Scenes keep their bare name as the key, so they have no marker folder to find.
+                    string lowerAssetPath = path.ToLowerInvariant();
+                    bool isSpecialScenePath = lowerAssetPath.Contains("resources/scenes") || lowerAssetPath.Contains("resources/additivscenes");
                     for (int i = 1; i < assetFileName.Length - 1; i++)
                     {
                         resourcesIndex++;
@@ -249,10 +256,17 @@ public class CreateAssetBundles : MonoBehaviour
                         {
                             continue;
                         }
-                        if (assetFileName[i] == "resources" || assetFileName[i] == "resources_landscape")
+                        // Content keys are the path below a Resources or AssetBundles folder, as in the
+                        // embedded manifest (p=game/gui/resources, p=modules/igloo/assetbundles).
+                        if (assetFileName[i] == "resources" || assetFileName[i] == "resources_landscape" || assetFileName[i] == "assetbundles")
                         {
+                            markerFound = true;
                             break;
                         }
+                    }
+                    if (!markerFound && !isSpecialScenePath)
+                    {
+                        throw new InvalidOperationException("CDN Addressable asset is not under a Resources or AssetBundles folder: " + path);
                     }
 
                     string assetBasePath = string.Join("/", assetFileName.Skip(1).Take(resourcesIndex));
@@ -282,11 +296,11 @@ public class CreateAssetBundles : MonoBehaviour
 
                 foreach (string entryBindingName in groupBindings)
                 {
-                    string bundlePath = Path.Combine(outputDirectory, entryBindingName + ".unity3d");
+                    string bundleFile = entryBindingName + ".unity3d";
                     uint crc;
-                    if (!BuildPipeline.GetCRCForAssetBundle(bundlePath, out crc))
+                    if (!bundleCrcs.TryGetValue(bundleFile, out crc))
                     {
-                        throw new InvalidOperationException("Unable to calculate CRC for CDN Addressables bundle: " + bundlePath);
+                        throw new InvalidOperationException("Addressables reported no CRC for CDN bundle: " + Path.Combine(outputDirectory, bundleFile));
                     }
                     writer.WriteLine(string.Format("bundle:{0}.unity3d?d=&p=0&crc={1}", entryBindingName, crc));
                 }
@@ -368,6 +382,7 @@ public class CreateAssetBundles : MonoBehaviour
     private static void GenerateManifest()
     {
         List<ClientManifest> clientManifestDirectory = new List<ClientManifest>();
+        string clientVersion = PlayerSettings.bundleVersion;
         if (File.Exists("Export/ClientManifestDirectory.json"))
         {
             File.Delete("Export/ClientManifestDirectory.json");
@@ -385,12 +400,24 @@ public class CreateAssetBundles : MonoBehaviour
             string platform = target.ToString().ToLowerInvariant();
             string urlPlatform = GetPlatformName(target);
             string url = string.Format("ClientBundles/{0}/{1}.unity3d", urlPlatform, cmanifestName);
-            clientManifestDirectory.Add(new ClientManifest("1.13.0", platform, "production", "Client 1.13.0_2018_11_05", false, url, "", generateHexString(), "Client 1.13.0", "2025-4-7 00:00:00 -08:00"));
+            clientManifestDirectory.Add(new ClientManifest(clientVersion, platform, "production", "Client " + clientVersion, false, url, "", generateHexString(), "Client " + clientVersion, DateTime.UtcNow.ToString("yyyy-M-d HH:mm:ss") + " +00:00"));
         }
 
         string clientManifestJson = LitJsonMapper.ToJson(new ClientManifestDirectory(clientManifestDirectory));
         Directory.CreateDirectory("Export");
         File.WriteAllText("Export/ClientManifestDirectory.json", clientManifestJson + Environment.NewLine);
+    }
+
+    [MenuItem("Project/AssetBundles/Generated/Generate CDN AssetBundles/Set CDN Build Targets...")]
+    private static void SetCdnTargets()
+    {
+        ScriptableWizard.DisplayWizard<CdnTargetsWizard>("CDN Build Targets", "Save");
+    }
+
+    [MenuItem("Project/AssetBundles/Generated/Generate CDN AssetBundles/Set CDN Root URL...")]
+    private static void SetCdnRoot()
+    {
+        ScriptableWizard.DisplayWizard<CdnRootWizard>("CDN Root URL", "Save");
     }
 
     [MenuItem("Project/AssetBundles/Generated/Generate CDN AssetBundles/Step 3: Generate __manifest cpremix prod")]
@@ -402,8 +429,9 @@ public class CreateAssetBundles : MonoBehaviour
         Todaysdate2 = UnixTimeNow();
         clientManifestDirectory.version = "test-" + todaysDate;
         clientManifestDirectory.unique = todaysDate;
-        clientManifestDirectory.cdnRoot = "http://localhost/";
-        clientManifestDirectory.url = "http://localhost/manifests/__manifest_cpremix_prod.0000.json";
+        string cdnRoot = CdnRootSettings.Get();
+        clientManifestDirectory.cdnRoot = cdnRoot;
+        clientManifestDirectory.url = cdnRoot + "manifests/__manifest_cpremix_prod.0000.json";
         clientManifestDirectory.paths = new Dictionary<string, ClientPaths>();
 
         string directoryPath = "Export";
@@ -487,5 +515,122 @@ public sealed class CdnAddressableBundleBuilder : BuildScriptPackedMode
             }
         }
         return base.ConstructAssetBundleName(assetGroup, schema, info, assetBundleName);
+    }
+}
+
+public static class CdnRootSettings
+{
+    private const string PrefKey = "CPI.CdnRoot";
+    public const string DefaultRoot = "http://localhost/";
+
+    public static string Normalize(string root)
+    {
+        if (string.IsNullOrWhiteSpace(root))
+        {
+            return DefaultRoot;
+        }
+        root = root.Trim();
+        return root.EndsWith("/") ? root : root + "/";
+    }
+
+    public static string Get()
+    {
+        return Normalize(EditorPrefs.GetString(PrefKey, DefaultRoot));
+    }
+
+    public static void Set(string root)
+    {
+        EditorPrefs.SetString(PrefKey, Normalize(root));
+    }
+}
+
+public sealed class CdnRootWizard : ScriptableWizard
+{
+    public string cdnRoot;
+
+    private void OnEnable()
+    {
+        cdnRoot = CdnRootSettings.Get();
+    }
+
+    private void OnWizardCreate()
+    {
+        CdnRootSettings.Set(cdnRoot);
+    }
+}
+
+
+public static class CdnTargetSettings
+{
+    private const string PrefKey = "CPI.CdnTargets";
+    private const string EnvKey = "CPI_CDN_TARGETS";
+    public static readonly BuildTarget[] All =
+    {
+        BuildTarget.Android,
+        BuildTarget.iOS,
+        BuildTarget.StandaloneWindows64,
+        BuildTarget.StandaloneOSX,
+        BuildTarget.StandaloneLinux64
+    };
+
+    // A comma-separated list of BuildTarget names. Unknown names are ignored; an empty or
+    // unusable list means every target. Order always follows All.
+    public static List<BuildTarget> Parse(string list)
+    {
+        List<BuildTarget> result = new List<BuildTarget>();
+        if (!string.IsNullOrWhiteSpace(list))
+        {
+            HashSet<string> names = new HashSet<string>(list.Split(',').Select(n => n.Trim()), StringComparer.OrdinalIgnoreCase);
+            foreach (BuildTarget target in All)
+            {
+                if (names.Contains(target.ToString()))
+                {
+                    result.Add(target);
+                }
+            }
+        }
+        return result.Count > 0 ? result : new List<BuildTarget>(All);
+    }
+
+    // The environment variable (for headless builds) wins over the saved choice.
+    public static List<BuildTarget> Get()
+    {
+        string fromEnv = Environment.GetEnvironmentVariable(EnvKey);
+        return Parse(string.IsNullOrWhiteSpace(fromEnv) ? EditorPrefs.GetString(PrefKey, "") : fromEnv);
+    }
+
+    public static void Set(IEnumerable<BuildTarget> chosen)
+    {
+        EditorPrefs.SetString(PrefKey, string.Join(",", chosen.Select(t => t.ToString()).ToArray()));
+    }
+}
+
+public sealed class CdnTargetsWizard : ScriptableWizard
+{
+    public bool android = true;
+    public bool iOS = true;
+    public bool windows64 = true;
+    public bool macOS = true;
+    public bool linux64 = true;
+
+    private void OnEnable()
+    {
+        List<BuildTarget> current = CdnTargetSettings.Get();
+        android = current.Contains(BuildTarget.Android);
+        iOS = current.Contains(BuildTarget.iOS);
+        windows64 = current.Contains(BuildTarget.StandaloneWindows64);
+        macOS = current.Contains(BuildTarget.StandaloneOSX);
+        linux64 = current.Contains(BuildTarget.StandaloneLinux64);
+    }
+
+    private void OnWizardCreate()
+    {
+        List<BuildTarget> chosen = new List<BuildTarget>();
+        if (android) chosen.Add(BuildTarget.Android);
+        if (iOS) chosen.Add(BuildTarget.iOS);
+        if (windows64) chosen.Add(BuildTarget.StandaloneWindows64);
+        if (macOS) chosen.Add(BuildTarget.StandaloneOSX);
+        if (linux64) chosen.Add(BuildTarget.StandaloneLinux64);
+        CdnTargetSettings.Set(chosen);
     }
 }
