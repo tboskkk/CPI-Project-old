@@ -77,7 +77,7 @@ namespace ClubPenguin.UI
 		{
 		}
 
-		[Invokable("Developers.Tests.Prompts.UpgradeAvailable", Description = "Preview the optional upgrade prompt.")]
+		[Invokable("Developers.Tests.Prompts.UpgradeAvailable", Description = "Preview the upgrade prompt.")]
 		[PublicTweak]
 		public static void PreviewOptionalUpgradePrompt()
 		{
