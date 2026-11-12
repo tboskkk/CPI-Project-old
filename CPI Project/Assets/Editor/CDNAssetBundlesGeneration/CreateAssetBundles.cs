@@ -244,6 +244,10 @@ public class CreateAssetBundles : MonoBehaviour
                     string path = entry.AssetPath;
                     string[] assetFileName = path.ToLowerInvariant().Split('/');
                     int resourcesIndex = 0;
+                    bool markerFound = false;
+                    // Scenes keep their bare name as the key, so they have no marker folder to find.
+                    string lowerAssetPath = path.ToLowerInvariant();
+                    bool isSpecialScenePath = lowerAssetPath.Contains("resources/scenes") || lowerAssetPath.Contains("resources/additivscenes");
                     for (int i = 1; i < assetFileName.Length - 1; i++)
                     {
                         resourcesIndex++;
@@ -252,10 +256,17 @@ public class CreateAssetBundles : MonoBehaviour
                         {
                             continue;
                         }
-                        if (assetFileName[i] == "resources" || assetFileName[i] == "resources_landscape")
+                        // Content keys are the path below a Resources or AssetBundles folder, as in the
+                        // embedded manifest (p=game/gui/resources, p=modules/igloo/assetbundles).
+                        if (assetFileName[i] == "resources" || assetFileName[i] == "resources_landscape" || assetFileName[i] == "assetbundles")
                         {
+                            markerFound = true;
                             break;
                         }
+                    }
+                    if (!markerFound && !isSpecialScenePath)
+                    {
+                        throw new InvalidOperationException("CDN Addressable asset is not under a Resources or AssetBundles folder: " + path);
                     }
 
                     string assetBasePath = string.Join("/", assetFileName.Skip(1).Take(resourcesIndex));
