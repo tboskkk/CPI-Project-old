@@ -808,6 +808,7 @@ namespace ClubPenguin.Adventure
 
 		private void trace(string format, params object[] objs)
 		{
+			UnityEngine.Debug.Log("[QUESTTRACE QuestService t=" + UnityEngine.Time.realtimeSinceStartup.ToString("F2") + "] " + string.Format(format, objs));
 		}
 	}
 }
