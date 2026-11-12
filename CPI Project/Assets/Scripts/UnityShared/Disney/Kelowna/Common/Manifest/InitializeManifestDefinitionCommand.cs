@@ -145,9 +145,12 @@ namespace Disney.Kelowna.Common.Manifest
         // fetches the release's catalog; any failure (offline, no delta in the release) leaves the manifest as it is.
         private IEnumerator loadReleaseManifestDelta()
         {
-            AsyncOperationHandle<IResourceLocator> initialization = Addressables.InitializeAsync();
+            // The plain InitializeAsync() releases its handle before control returns here, so ask to keep it.
+            AsyncOperationHandle<IResourceLocator> initialization = Addressables.InitializeAsync(false);
             yield return initialization;
-            if (initialization.Status != AsyncOperationStatus.Succeeded)
+            bool initialized = initialization.Status == AsyncOperationStatus.Succeeded;
+            Addressables.Release(initialization);
+            if (!initialized)
             {
                 yield break;
             }
