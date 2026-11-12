@@ -358,9 +358,9 @@ namespace ClubPenguin
             NumDaysPlayed = new CacheableType<int>("cp.NumDaysPlayed", 0);
             LastDayPlayed = new CacheableType<string>("cp.LastDayPlayed", string.Empty);
             SfxEnabled = new CacheableType<bool>("cp.SfxEnabled", true);
-            SfxVolume = new CacheableType<float>("cp.SfxVolume", 1f);
+            SfxVolume = new CacheableType<float>("cp.SfxVolume", 2f);
             MusicEnabled = new CacheableType<bool>("cp.MusicEnabled", true);
-            MusicVolume = new CacheableType<float>("cp.MusicVolume", 1f);
+            MusicVolume = new CacheableType<float>("cp.MusicVolume", 2f);
             SavedLanguage = new CacheableType<Language>("cp.SavedLanguage", Language.none);
             LastZone = new CacheableType<string>("cp.LastZone", "");
             KeyboardHeight = new CacheableType<float>("cp.KeyboardHeight", 0.38f);
