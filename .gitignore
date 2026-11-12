@@ -75,3 +75,6 @@ CPI Project/Assets/StreamingAssets/assetbundles/generated/standalonelinux64.meta
 CPI Project/Assets/AddressableAssetsData/WebGL.meta
 CPI Project/Assets/StreamingAssets/assetbundles/generated/webgl.meta
 /CPI Project/Assets/StreamingAssets/assetbundles/generated/webgl
+CPI Project/Assets/AddressableAssetsData/macOS.meta
+CPI Project/Assets/StreamingAssets/assetbundles/generated/standaloneosx.meta
+/CPI Project/Assets/StreamingAssets/assetbundles/generated/standaloneosx
