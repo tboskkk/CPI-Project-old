@@ -9374,5 +9374,8 @@
   "Igloos.MusicTrack.ThroughMountainPasses": "A través de los pasos de montaña",
   "Igloos.MusicTrack.Shadow": "Sombra",
   "Igloos.MusicTrack.Elemental": "Elemental",
-  "Igloos.MusicTrack.UniversityRally": "Rally de la Universidad"
+  "Igloos.MusicTrack.UniversityRally": "Rally de la Universidad",
+  "GlobalUI.Settings.MusicPresets.Header": "PRESENTACIONES DE MÚSICA",
+  "GlobalUI.Settings.SFXPresets.Header": "SFX PRESETS",
+  "Settings.Sounds.MaxVolume": "Max"
 }
