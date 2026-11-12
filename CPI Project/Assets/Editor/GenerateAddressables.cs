@@ -148,6 +148,9 @@ public static class GenerateAddressables
         settings.profileSettings.SetValue(settings.activeProfileId, AddressableAssetSettings.kRemoteBuildPath, RemoteBuildPath);
         settings.profileSettings.SetValue(settings.activeProfileId, AddressableAssetSettings.kRemoteLoadPath, RemoteLoadPath);
         settings.CatalogRequestsTimeout = CatalogRequestsTimeoutSeconds;
+        // No catalog request at startup: with no release named, the placeholder host would be tried (and the client hung
+        // waiting on it). The client updates the catalog itself, only once the server names a release.
+        settings.DisableCatalogUpdateOnStartup = true;
         foreach (AddressableAssetGroup group in settings.groups)
         {
             if (group == null)

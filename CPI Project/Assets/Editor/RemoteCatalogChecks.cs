@@ -65,6 +65,7 @@ public static class RemoteCatalogChecks
         Check(settings.profileSettings.GetValueByName(settings.activeProfileId, AddressableAssetSettings.kRemoteLoadPath) == "https://cdn.invalid/[BuildTarget]" && settings.RemoteCatalogLoadPath.GetName(settings) == AddressableAssetSettings.kRemoteLoadPath, "remote load path is the placeholder host");
         Check(settings.profileSettings.GetValueByName(settings.activeProfileId, AddressableAssetSettings.kRemoteBuildPath) == "ServerData/[BuildTarget]" && settings.RemoteCatalogBuildPath.GetName(settings) == AddressableAssetSettings.kRemoteBuildPath, "remote build path is ServerData/[BuildTarget]");
         Check(settings.CatalogRequestsTimeout == 5, "catalog request timeout is short");
+        Check(settings.DisableCatalogUpdateOnStartup, "no catalog update is attempted at startup (only when a release is named)");
         int groups = 0, bad = 0, noSchemas = 0;
         List<string> noSchemaNames = new List<string>();
         foreach (AddressableAssetGroup group in settings.groups)

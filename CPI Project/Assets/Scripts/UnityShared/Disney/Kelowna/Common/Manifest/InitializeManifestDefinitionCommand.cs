@@ -151,6 +151,16 @@ namespace Disney.Kelowna.Common.Manifest
             {
                 yield break;
             }
+            // The catalog isn't updated at startup (see GenerateAddressables), so fetch the release's catalog here.
+            AsyncOperationHandle<List<string>> updatable = Addressables.CheckForCatalogUpdates(false);
+            yield return updatable;
+            if (updatable.Status == AsyncOperationStatus.Succeeded && updatable.Result != null && updatable.Result.Count > 0)
+            {
+                AsyncOperationHandle<List<IResourceLocator>> updated = Addressables.UpdateCatalogs(updatable.Result, false);
+                yield return updated;
+                Addressables.Release(updated);
+            }
+            Addressables.Release(updatable);
             AsyncOperationHandle<IList<IResourceLocation>> locations = Addressables.LoadResourceLocationsAsync(RemoteCatalogRedirect.ManifestDeltaAddress);
             yield return locations;
             bool present = locations.Status == AsyncOperationStatus.Succeeded && locations.Result != null && locations.Result.Count > 0;
