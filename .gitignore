@@ -60,3 +60,18 @@ DevAssets/LanuageTranslation/translation_cache_nllb.json
 DevAssets/LanuageTranslation/translation_progress.json
 *.glb
 /CPI Project/Assets/Fabric/Editor/ProjectData
+CPI Project/Assets/AddressableAssetsData/Windows.meta
+CPI Project/Assets/StreamingAssets/assetbundles/generated/standalonewindows64.meta
+/CPI Project/Assets/StreamingAssets/assetbundles/generated/standalonewindows64
+CPI Project/Assets/AddressableAssetsData/Android.meta
+CPI Project/Assets/StreamingAssets/assetbundles/generated/android.meta
+/CPI Project/Assets/StreamingAssets/assetbundles/generated/android
+CPI Project/Assets/AddressableAssetsData/iOS.meta
+CPI Project/Assets/StreamingAssets/assetbundles/generated/ios.meta
+/CPI Project/Assets/StreamingAssets/assetbundles/generated/ios
+CPI Project/Assets/AddressableAssetsData/Linux.meta
+CPI Project/Assets/StreamingAssets/assetbundles/generated/standalonelinux64.meta
+/CPI Project/Assets/StreamingAssets/assetbundles/generated/standalonelinux64
+CPI Project/Assets/AddressableAssetsData/WebGL.meta
+CPI Project/Assets/StreamingAssets/assetbundles/generated/webgl.meta
+/CPI Project/Assets/StreamingAssets/assetbundles/generated/webgl
