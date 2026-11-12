@@ -2,10 +2,15 @@ using Disney.LaunchPadFramework;
 using Disney.MobileNetwork;
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using UnityEngine;
+using UnityEngine.AddressableAssets;
+using UnityEngine.AddressableAssets.ResourceLocators;
 using UnityEngine.Networking;
+using UnityEngine.ResourceManagement.AsyncOperations;
+using UnityEngine.ResourceManagement.ResourceLocations;
 
 namespace Disney.Kelowna.Common.Manifest
 {
@@ -129,7 +134,42 @@ namespace Disney.Kelowna.Common.Manifest
                 yield return contentManifest_download(contentDirectoryEntry);
                 contentManifest = ContentManifestUtility.Merge(embeddedManifest, downloadedManifest);
             }
+            if (RemoteCatalogRedirect.ReleaseId != null)
+            {
+                yield return loadReleaseManifestDelta();
+            }
             onInitializeComplete(contentManifest);
+        }
+
+        // A release that adds content keys carries their manifest entries in its catalog. Initialising Addressables here
+        // fetches the release's catalog; any failure (offline, no delta in the release) leaves the manifest as it is.
+        private IEnumerator loadReleaseManifestDelta()
+        {
+            AsyncOperationHandle<IResourceLocator> initialization = Addressables.InitializeAsync();
+            yield return initialization;
+            if (initialization.Status != AsyncOperationStatus.Succeeded)
+            {
+                yield break;
+            }
+            AsyncOperationHandle<IList<IResourceLocation>> locations = Addressables.LoadResourceLocationsAsync(RemoteCatalogRedirect.ManifestDeltaAddress);
+            yield return locations;
+            bool present = locations.Status == AsyncOperationStatus.Succeeded && locations.Result != null && locations.Result.Count > 0;
+            Addressables.Release(locations);
+            if (!present)
+            {
+                yield break;
+            }
+            AsyncOperationHandle<TextAsset> load = Addressables.LoadAssetAsync<TextAsset>(RemoteCatalogRedirect.ManifestDeltaAddress);
+            yield return load;
+            if (load.Status == AsyncOperationStatus.Succeeded && load.Result != null)
+            {
+                contentManifest = RemoteCatalogRedirect.MergeDelta(contentManifest, new ContentManifest(load.Result));
+            }
+            else
+            {
+                Log.LogError(this, "The release's content manifest delta failed to load; continuing without it");
+            }
+            Addressables.Release(load);
         }
 
         private void checkContentVersionAndManifestHashInManifest(ContentManifest manifest, ContentManifestDirectoryEntry directoryEntry)

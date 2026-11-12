@@ -15,6 +15,9 @@ namespace Disney.Kelowna.Common
 	{
 		public const string PlaceholderHost = "https://cdn.invalid";
 
+		// A content release that adds new content keys carries their manifest entries as this TextAsset.
+		public const string ManifestDeltaAddress = "cdn/contentmanifest-delta";
+
 		private static readonly Regex releaseIdPattern = new Regex("^[A-Za-z0-9][A-Za-z0-9._-]{0,39}$");
 
 		private static string cdnRoot;
@@ -61,6 +64,21 @@ namespace Disney.Kelowna.Common
 				return null;
 			}
 			return uri.GetLeftPart(UriPartial.Authority) + path.Substring(0, previous);
+		}
+
+		// The manifest with the release's new entries added. The base manifest's version and hash stay: the delta is
+		// only a list of entries, so it must not overwrite them the way a full downloaded manifest does.
+		public static ContentManifest MergeDelta(ContentManifest manifest, ContentManifest delta)
+		{
+			if (delta == null)
+			{
+				return manifest;
+			}
+			ContentManifest merged = ContentManifestUtility.Merge(manifest, delta);
+			merged.BaseUri = manifest.BaseUri;
+			merged.ContentVersion = manifest.ContentVersion;
+			merged.ContentManifestHash = manifest.ContentManifestHash;
+			return merged;
 		}
 
 		public static void Install()
