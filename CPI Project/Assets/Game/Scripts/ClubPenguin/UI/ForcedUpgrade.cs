@@ -10,7 +10,7 @@ namespace ClubPenguin.UI
 {
 	public static class ForcedUpgrade
 	{
-		private const string UPDATE_PAGE_URL = "https://github.com/wednesday2024/CPI-Project/releases";
+		private const string UPDATE_PAGE_URL = "https://opencpisland.com/download.html";
 
 		private const string FORCED_UPGRADE_TITLE_TOKEN = "GlobalUI.ErrorMessages.UpgradeNeeded.Title";
 
