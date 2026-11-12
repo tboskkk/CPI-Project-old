@@ -14,9 +14,9 @@ namespace ClubPenguin.Audio
 
 		public GroupComponent DIA;
 
-		private float cachedMusicVolume = 1f;
+		private float cachedMusicVolume = 2f;
 
-		private float cachedSFXVolume = 1f;
+		private float cachedSFXVolume = 2f;
 
 		private bool muted = false;
 
@@ -43,7 +43,7 @@ namespace ClubPenguin.Audio
 
 		public void SetSFXVolume(float sfxVolume, bool cache = true)
 		{
-            float volume = Mathf.Clamp(sfxVolume, 0f, 2f);
+            float volume = Mathf.Clamp(sfxVolume, 0f, 4f);
             AMB.Volume = volume;
 			SFX.Volume = volume;
 			DIA.Volume = volume;
@@ -55,7 +55,7 @@ namespace ClubPenguin.Audio
 
 		public void SetMusicVolume(float musicVolume)
 		{
-            float volume = Mathf.Clamp(musicVolume, 0f, 2f);
+            float volume = Mathf.Clamp(musicVolume, 0f, 4f);
             Music.Volume = volume;
 			if (isOtherAudioPlaying())
 			{

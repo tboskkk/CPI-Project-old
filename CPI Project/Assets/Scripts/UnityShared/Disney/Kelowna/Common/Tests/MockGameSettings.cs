@@ -68,8 +68,8 @@ namespace Disney.Kelowna.Common.Tests
 		{
 			SfxEnabled = new CacheableType<bool>("cp.tests.SfxEnabled", true);
 			MusicEnabled = new CacheableType<bool>("cp.tests.MusicEnabled", true);
-			SfxVolume = new CacheableType<float>("cp.tests.SfxVolume", 1f);
-			MusicVolume = new CacheableType<float>("cp.tests.MusicVolume", 1f);
+			SfxVolume = new CacheableType<float>("cp.tests.SfxVolume", 2f);
+			MusicVolume = new CacheableType<float>("cp.tests.MusicVolume", 2f);
 			SavedLanguage = new CacheableType<string>("cp.tests.SavedLanguage", "en_US");
 			DevelopmentEnvironment = new DevCacheableType<Disney.Kelowna.Common.Environment.Environment>("cp.tests.DevelopmentEnvironment", Disney.Kelowna.Common.Environment.Environment.QA);
 		}
