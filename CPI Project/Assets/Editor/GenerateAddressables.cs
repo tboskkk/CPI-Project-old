@@ -35,6 +35,7 @@ public static class GenerateAddressables
         {
             throw new InvalidOperationException(result.Error);
         }
+        ArchiveContentState();
         List<string> expectedBundlePaths = GetExpectedBundlePaths(settings, outputDirectory);
         List<string> missingBundlePaths = new List<string>();
         foreach (string bundlePath in expectedBundlePaths)
@@ -52,6 +53,15 @@ public static class GenerateAddressables
         CleanupPlatformAddressableData(platform);
         AssetDatabase.SaveAssets();
         AssetDatabase.Refresh();
+    }
+
+    // Keeps what a later content update must be built against: the state file and the baseline catalog.
+    private static void ArchiveContentState()
+    {
+        string target = EditorUserBuildSettings.activeBuildTarget.ToString();
+        string serverData = Path.Combine(Application.dataPath, "..", "ServerData", target);
+        string folder = ContentArchive.Archive(ContentArchive.DefaultRoot(), PlayerSettings.bundleVersion, target, ContentUpdateScript.GetContentStateDataPath(false), serverData);
+        UnityEngine.Debug.Log("Content state archived to " + folder);
     }
 
     private static int GetAddressableBundleNameBuilderIndex(AddressableAssetSettings settings)
