@@ -18,15 +18,14 @@ public class CreateAssetBundles : MonoBehaviour
 {
     private const string CdnGroupPrefix = "CDN-";
     private const string CdnManifestGroupPrefix = "CDN-Manifest-";
-    private static readonly List<BuildTarget> targets = new List<BuildTarget>
+    private static List<BuildTarget> targets
     {
-        BuildTarget.Android,
-        BuildTarget.iOS,
-        BuildTarget.StandaloneWindows64,
-        BuildTarget.StandaloneOSX,
-        BuildTarget.StandaloneLinux64
-    };
+        get { return CdnTargetSettings.Get(); }
+    }
     private static readonly Dictionary<string, string> outputBundleNames = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+    // CRCs of the bundles Addressables built, by file name. The Addressables pipeline writes no .manifest
+    // files, so BuildPipeline.GetCRCForAssetBundle can't be used.
+    private static readonly Dictionary<string, uint> bundleCrcs = new Dictionary<string, uint>(StringComparer.OrdinalIgnoreCase);
 
     public static long Todaysdate1;
     public static long Todaysdate2;
@@ -165,7 +164,7 @@ public class CreateAssetBundles : MonoBehaviour
                     schema.LoadPath.SetVariableByName(settings, AddressableAssetSettings.kLocalLoadPath);
                     schema.BundleMode = BundledAssetGroupSchema.BundlePackingMode.PackTogether;
                     schema.Compression = BundledAssetGroupSchema.BundleCompressionMode.Uncompressed;
-                    schema.BundleNaming = BundledAssetGroupSchema.BundleNamingStyle.NoHash;
+                    schema.BundleNaming = BundledAssetGroupSchema.BundleNamingStyle.AppendHash;
                 }
             }
 
@@ -176,6 +175,10 @@ public class CreateAssetBundles : MonoBehaviour
             if (result == null || !string.IsNullOrEmpty(result.Error))
             {
                 throw new InvalidOperationException(result == null ? "Addressables returned no CDN build result." : result.Error);
+            }
+            foreach (AddressablesPlayerBuildResult.BundleBuildResult built in result.AssetBundleBuildResults)
+            {
+                bundleCrcs[Path.GetFileName(built.FilePath)] = built.Crc;
             }
             foreach (string file in Directory.GetFiles(outputDirectory, "*", SearchOption.AllDirectories))
             {
@@ -282,11 +285,11 @@ public class CreateAssetBundles : MonoBehaviour
 
                 foreach (string entryBindingName in groupBindings)
                 {
-                    string bundlePath = Path.Combine(outputDirectory, entryBindingName + ".unity3d");
+                    string bundleFile = entryBindingName + ".unity3d";
                     uint crc;
-                    if (!BuildPipeline.GetCRCForAssetBundle(bundlePath, out crc))
+                    if (!bundleCrcs.TryGetValue(bundleFile, out crc))
                     {
-                        throw new InvalidOperationException("Unable to calculate CRC for CDN Addressables bundle: " + bundlePath);
+                        throw new InvalidOperationException("Addressables reported no CRC for CDN bundle: " + Path.Combine(outputDirectory, bundleFile));
                     }
                     writer.WriteLine(string.Format("bundle:{0}.unity3d?d=&p=0&crc={1}", entryBindingName, crc));
                 }
@@ -392,6 +395,12 @@ public class CreateAssetBundles : MonoBehaviour
         string clientManifestJson = LitJsonMapper.ToJson(new ClientManifestDirectory(clientManifestDirectory));
         Directory.CreateDirectory("Export");
         File.WriteAllText("Export/ClientManifestDirectory.json", clientManifestJson + Environment.NewLine);
+    }
+
+    [MenuItem("Project/AssetBundles/Generated/Generate CDN AssetBundles/Set CDN Build Targets...")]
+    private static void SetCdnTargets()
+    {
+        ScriptableWizard.DisplayWizard<CdnTargetsWizard>("CDN Build Targets", "Save");
     }
 
     [MenuItem("Project/AssetBundles/Generated/Generate CDN AssetBundles/Set CDN Root URL...")]
@@ -536,5 +545,81 @@ public sealed class CdnRootWizard : ScriptableWizard
     private void OnWizardCreate()
     {
         CdnRootSettings.Set(cdnRoot);
+    }
+}
+
+
+public static class CdnTargetSettings
+{
+    private const string PrefKey = "CPI.CdnTargets";
+    private const string EnvKey = "CPI_CDN_TARGETS";
+    public static readonly BuildTarget[] All =
+    {
+        BuildTarget.Android,
+        BuildTarget.iOS,
+        BuildTarget.StandaloneWindows64,
+        BuildTarget.StandaloneOSX,
+        BuildTarget.StandaloneLinux64
+    };
+
+    // A comma-separated list of BuildTarget names. Unknown names are ignored; an empty or
+    // unusable list means every target. Order always follows All.
+    public static List<BuildTarget> Parse(string list)
+    {
+        List<BuildTarget> result = new List<BuildTarget>();
+        if (!string.IsNullOrWhiteSpace(list))
+        {
+            HashSet<string> names = new HashSet<string>(list.Split(',').Select(n => n.Trim()), StringComparer.OrdinalIgnoreCase);
+            foreach (BuildTarget target in All)
+            {
+                if (names.Contains(target.ToString()))
+                {
+                    result.Add(target);
+                }
+            }
+        }
+        return result.Count > 0 ? result : new List<BuildTarget>(All);
+    }
+
+    // The environment variable (for headless builds) wins over the saved choice.
+    public static List<BuildTarget> Get()
+    {
+        string fromEnv = Environment.GetEnvironmentVariable(EnvKey);
+        return Parse(string.IsNullOrWhiteSpace(fromEnv) ? EditorPrefs.GetString(PrefKey, "") : fromEnv);
+    }
+
+    public static void Set(IEnumerable<BuildTarget> chosen)
+    {
+        EditorPrefs.SetString(PrefKey, string.Join(",", chosen.Select(t => t.ToString()).ToArray()));
+    }
+}
+
+public sealed class CdnTargetsWizard : ScriptableWizard
+{
+    public bool android = true;
+    public bool iOS = true;
+    public bool windows64 = true;
+    public bool macOS = true;
+    public bool linux64 = true;
+
+    private void OnEnable()
+    {
+        List<BuildTarget> current = CdnTargetSettings.Get();
+        android = current.Contains(BuildTarget.Android);
+        iOS = current.Contains(BuildTarget.iOS);
+        windows64 = current.Contains(BuildTarget.StandaloneWindows64);
+        macOS = current.Contains(BuildTarget.StandaloneOSX);
+        linux64 = current.Contains(BuildTarget.StandaloneLinux64);
+    }
+
+    private void OnWizardCreate()
+    {
+        List<BuildTarget> chosen = new List<BuildTarget>();
+        if (android) chosen.Add(BuildTarget.Android);
+        if (iOS) chosen.Add(BuildTarget.iOS);
+        if (windows64) chosen.Add(BuildTarget.StandaloneWindows64);
+        if (macOS) chosen.Add(BuildTarget.StandaloneOSX);
+        if (linux64) chosen.Add(BuildTarget.StandaloneLinux64);
+        CdnTargetSettings.Set(chosen);
     }
 }
