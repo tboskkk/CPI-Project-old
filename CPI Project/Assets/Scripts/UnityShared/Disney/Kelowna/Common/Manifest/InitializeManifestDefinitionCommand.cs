@@ -163,7 +163,9 @@ namespace Disney.Kelowna.Common.Manifest
             yield return load;
             if (load.Status == AsyncOperationStatus.Succeeded && load.Result != null)
             {
-                contentManifest = RemoteCatalogRedirect.MergeDelta(contentManifest, new ContentManifest(load.Result));
+                ContentManifest delta = new ContentManifest(load.Result);
+                contentManifest = RemoteCatalogRedirect.MergeDelta(contentManifest, delta);
+                UnityEngine.Debug.Log("Content release " + RemoteCatalogRedirect.ReleaseId + ": merged " + delta.AssetEntryMap.Count + " manifest delta entries");
             }
             else
             {
