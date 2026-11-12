@@ -25,6 +25,7 @@ public static class GenerateAddressables
         AddressableAssetSettings settings = AddressableAssetSettingsDefaultObject.GetSettings(true);
         NormalizePathBasedAddresses(settings);
         ConfigureLocalGroups(settings, new List<AddressableAssetGroup>(settings.groups), platform);
+        ConfigureRemoteCatalog(settings);
         settings.ActivePlayerDataBuilderIndex = GetAddressableBundleNameBuilderIndex(settings);
         AssetDatabase.SaveAssets();
 
@@ -119,6 +120,43 @@ public static class GenerateAddressables
     {
         return group.Name.StartsWith("CDN/", StringComparison.OrdinalIgnoreCase) ||
                group.Name.StartsWith("CDN-", StringComparison.OrdinalIgnoreCase);
+    }
+
+    // The remote catalog lets a content release replace and add assets after the player ships. The load path is a
+    // placeholder host that RemoteCatalogRedirect rewrites at runtime, so no server address is built in.
+    // Every group is static (cannot change post release) and bundle CRCs are off: moving an entry out of a static group
+    // makes the update build rebuild the donor bundle, whose CRC then wouldn't match the one the player shipped with.
+    internal const string RemoteLoadPath = "https://cdn.invalid/[BuildTarget]";
+    internal const string RemoteBuildPath = "ServerData/[BuildTarget]";
+    internal const int CatalogRequestsTimeoutSeconds = 5;
+
+    internal static void ConfigureRemoteCatalog(AddressableAssetSettings settings)
+    {
+        settings.BuildRemoteCatalog = true;
+        settings.RemoteCatalogBuildPath.SetVariableByName(settings, AddressableAssetSettings.kRemoteBuildPath);
+        settings.RemoteCatalogLoadPath.SetVariableByName(settings, AddressableAssetSettings.kRemoteLoadPath);
+        settings.profileSettings.SetValue(settings.activeProfileId, AddressableAssetSettings.kRemoteBuildPath, RemoteBuildPath);
+        settings.profileSettings.SetValue(settings.activeProfileId, AddressableAssetSettings.kRemoteLoadPath, RemoteLoadPath);
+        settings.CatalogRequestsTimeout = CatalogRequestsTimeoutSeconds;
+        foreach (AddressableAssetGroup group in settings.groups)
+        {
+            if (group == null)
+            {
+                continue;
+            }
+            BundledAssetGroupSchema bundled = group.GetSchema<BundledAssetGroupSchema>();
+            if (bundled != null)
+            {
+                bundled.UseAssetBundleCrc = false;
+                bundled.UseAssetBundleCrcForCachedBundles = false;
+            }
+            ContentUpdateGroupSchema update = group.GetSchema<ContentUpdateGroupSchema>();
+            if (update != null)
+            {
+                update.StaticContent = true;
+            }
+        }
+        settings.SetDirty(AddressableAssetSettings.ModificationEvent.BatchModification, null, true, true);
     }
 
     private static void ConfigureLocalGroups(AddressableAssetSettings settings, List<AddressableAssetGroup> groups, string platform)
