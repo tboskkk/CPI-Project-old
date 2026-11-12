@@ -50,8 +50,16 @@ namespace Disney.Kelowna.Common.Manifest
             this.callback = callback;
         }
 
+        private bool completed;
+
         private void onInitializeComplete(ContentManifest manifest, bool requiresAppUgrade = false)
         {
+            // The timeout and a slow release load can both get here; the game is told once, by whichever comes first.
+            if (completed)
+            {
+                return;
+            }
+            completed = true;
             if (timeoutCheck != null && !timeoutCheck.Completed && !timeoutCheck.Cancelled)
             {
                 timeoutCheck.Cancel();

@@ -27,6 +27,7 @@ public static class RemoteCatalogChecks
             Redirect();
             BuildConfiguration();
             ClientInfoStamp();
+            ManifestCompletesOnce();
         }
         catch (Exception e)
         {
@@ -47,6 +48,17 @@ public static class RemoteCatalogChecks
         Check(info.ClientVersion == "1.17.0" && info.BuildVersion == "1.17.0", "client info version follows the project's bundle version");
         Check(info.Platform == "standalonelinux64", "client info platform is set");
         UnityEngine.Object.DestroyImmediate(info);
+    }
+
+    // The 10 s manifest timeout and a slow release load can both finish: the game must be told only once.
+    private static void ManifestCompletesOnce()
+    {
+        int calls = 0;
+        Disney.Kelowna.Common.Manifest.InitializeManifestDefinitionCommand command = new Disney.Kelowna.Common.Manifest.InitializeManifestDefinitionCommand(null, (manifest, prereq, upgrade, available) => calls++);
+        System.Reflection.MethodInfo complete = typeof(Disney.Kelowna.Common.Manifest.InitializeManifestDefinitionCommand).GetMethod("onInitializeComplete", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
+        complete.Invoke(command, new object[] { new ContentManifest(), false });
+        complete.Invoke(command, new object[] { new ContentManifest(), false });
+        Check(calls == 1, "a second completion (late release load after the timeout) doesn't call the game again (calls=" + calls + ")");
     }
 
     private static void Redirect()
