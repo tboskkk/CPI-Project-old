@@ -77,6 +77,13 @@ namespace ClubPenguin.UI
 		{
 		}
 
+		[Invokable("Developers.Tests.Prompts.UpgradeAvailable", Description = "Preview the optional upgrade prompt.")]
+		[PublicTweak]
+		public static void PreviewOptionalUpgradePrompt()
+		{
+			OpenOptionalUpgradePrompt();
+		}
+
 		[Invokable("UI.OpenOptionalUpgradePrompt")]
 		public static void OpenOptionalUpgradePrompt()
 		{
